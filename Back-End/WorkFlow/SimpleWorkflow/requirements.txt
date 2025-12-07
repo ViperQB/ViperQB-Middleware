@@ -1,0 +1,20 @@
+"""
+requirements.txt - No external dependencies required!
+
+This project uses only Python standard library modules:
+- datetime
+- threading
+- time
+- typing
+- enum
+
+Python Version: 3.7+
+
+To set up a virtual environment (optional):
+    python -m venv venv
+    venv\Scripts\activate  (on Windows)
+    source venv/bin/activate  (on Linux/Mac)
+
+Then run:
+    python examples.py
+"""

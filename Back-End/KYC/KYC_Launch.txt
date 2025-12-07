@@ -1,0 +1,7 @@
+Run:
+     ```powershell
+     npx http-server -p 8000
+     ```
+   - Or use Python:
+     ```powershell
+     python -m http.server 8000

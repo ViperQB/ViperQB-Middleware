@@ -1,0 +1,4 @@
+python tracker.py ----- To Start The Tracker!!
+python node.py -node_id [Id Of The Node] ----- To start a Specific node 
+torrent -setMode send FIle Name[file_A.txt] ------ To Send File
+torrent -setMode download FIle Name[file_A.txt] ----- To Recieve File

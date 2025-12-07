@@ -1,0 +1,2900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Face Recognition Biometric Manager with Unlimited Storage">
+    <title>ViperQB</title>
+    <script src="face-api.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root{
+            --neon: #00e676; /* slightly deeper green for better contrast */
+            --neon-2: #00c853; /* secondary accent */
+            --bg-1: #040608;
+            --bg-2: #0b1212;
+            --card: rgba(255,255,255,0.035);
+            --glass: rgba(255,255,255,0.04);
+            --muted: #9ca3af;
+        }
+
+        /* Base page theme */
+        body.futuristic{
+            font-family: 'Orbitron', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            color: #dfffe8;
+            background:
+                radial-gradient(600px 300px at 10% 10%, rgba(0,255,120,0.04), transparent 10%),
+                radial-gradient(800px 400px at 90% 90%, rgba(0,180,120,0.03), transparent 8%),
+                linear-gradient(180deg,var(--bg-1), var(--bg-2));
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        /* Subtle animated scanlines for futuristic feel */
+        body.futuristic::before{
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 100% 28px; opacity: 0.08; mix-blend-mode: overlay;
+            animation: scan 6s linear infinite;
+        }
+        @keyframes scan{ 0%{ transform: translateY(-2px);} 50%{ transform: translateY(2px);} 100%{ transform: translateY(-2px);} }
+
+        /* Header */
+        body.futuristic header{ background: linear-gradient(90deg, rgba(0,230,110,0.04), rgba(0,0,0,0.18)); border-bottom: 1px solid rgba(0,230,110,0.08); box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 20; }
+        body.futuristic header h1{ color: var(--neon); text-shadow: 0 8px 36px rgba(0,230,110,0.08); }
+        body.futuristic header p{ color: rgba(200,255,220,0.95); }
+
+        /* Cards and panels */
+        .person-card{ background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.01)); border: 1px solid rgba(0,230,110,0.09); box-shadow: 0 12px 40px rgba(0,0,0,0.6); border-radius: 12px; }
+        .person-card:hover{ transform: translateY(-6px); box-shadow: 0 24px 64px rgba(0,200,100,0.06); }
+
+        .drop-area{ border-radius: 12px; padding: 36px 20px; text-align: center; cursor: pointer; border: 1px dashed rgba(0,230,110,0.12); background: rgba(255,255,255,0.012); color: #c8ffdf; }
+        .drop-area:hover{ transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,230,110,0.04), 0 0 18px rgba(0,200,100,0.02); }
+        .drop-area.dragover{ border-color: rgba(0,230,110,0.22); background: linear-gradient(180deg, rgba(0,230,110,0.03), rgba(0,230,110,0.01)); }
+
+        /* Images / thumbnails */
+        .face-image{ border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border: 1px solid rgba(0,200,100,0.06); }
+        .face-thumbnail{ width: 100px; height: 100px; object-fit: cover; border-radius: 10px; margin: 6px; border: 2px solid rgba(0,230,110,0.12); filter: drop-shadow(0 8px 28px rgba(0,230,110,0.03)); transition: transform .18s ease, box-shadow .18s ease; }
+        .face-thumbnail:hover{ transform: scale(1.08); box-shadow: 0 18px 48px rgba(0,255,114,0.06); }
+
+        /* Buttons - unify look with neon outlines */
+        .futuristic button{ background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color: #e9fff4; border: 1px solid rgba(0,230,110,0.12); padding: .5rem .85rem; border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.6), 0 0 12px rgba(0,200,100,0.04); transition: transform .12s ease, box-shadow .12s ease; }
+        .futuristic button:hover{ transform: translateY(-3px); box-shadow: 0 18px 60px rgba(0,200,100,0.08), 0 0 28px rgba(0,200,100,0.12); }
+        .futuristic .storage-info{ background: linear-gradient(90deg, rgba(0,200,100,0.12), rgba(0,160,90,0.04)); color: #fff; border-radius: 8px; padding: 10px 14px; font-weight:700; box-shadow: 0 6px 26px rgba(0,200,100,0.04); }
+
+        /* Badges and progress */
+        .badge{ background: rgba(0,200,100,0.06); color: #e9fff4; border: 1px solid rgba(0,200,100,0.05); }
+        .progress-bar-container{ background: rgba(255,255,255,0.02); }
+        .progress-bar-fill{ background: linear-gradient(90deg, var(--neon), var(--neon-2)); box-shadow: 0 6px 20px rgba(0,255,114,0.06); }
+
+        /* Notifications & modals (restored original look for popups) */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #181f25; margin: 5% auto; padding: 24px; border: none; width: 90%; max-width: 520px; border-radius: 12px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease-out; }
+        @keyframes modalSlideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .notification { position: fixed; top: 20px; right: 20px; padding: 16px 20px; border-radius: 10px; color: white; z-index: 1000; min-width: 280px; max-width: 420px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(0); opacity: 1; }
+        .notification.hiding { transform: translateX(450px); opacity: 0; }
+        /* Match result cards: high contrast backgrounds and text */
+        .match-result-card {
+            background: #101a14;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,255,114,0.08);
+            color: #eafff0;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding: 18px 24px;
+            border: 2px solid #00e67622;
+        }
+        .match-result-card.match-warning {
+            background: #fffde4;
+            color: #b8860b;
+            border-color: #ffe066;
+        }
+        .match-result-card.match-success {
+            background: #eafff0;
+            color: #00c853;
+            border-color: #00e676;
+        }
+        .match-result-card.match-low {
+            background: #f8f8f8;
+            color: #7fbf9a;
+            border-color: #bfeee0;
+        }
+        .match-result-card .match-name {
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+        .match-result-card .match-score {
+            float: right;
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+        /* Progress bar: always readable */
+        .progress-bar-fill {
+            color: #222;
+            font-weight: 700;
+            text-shadow: 0 2px 8px #fff;
+        }
+
+        /* Small helpers and responsiveness */
+        .icon-btn{ width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; }
+        .icon-download{ color: var(--neon); }
+        .icon-edit{ color: #7ee6ff; }
+        .icon-delete{ color: #ff7b7b; }
+
+        @media (max-width: 640px){
+            .face-thumbnail{ width: 80px; height: 80px; margin: 4px; }
+            .modal-content{ padding: 16px; }
+        }
+        /* Override common Tailwind gray text utilities for better contrast on neon background */
+        body.futuristic .text-gray-900 { color: #e8fff6 !important; }
+        body.futuristic .text-gray-800 { color: #d7fff0 !important; }
+        body.futuristic .text-gray-700 { color: #bfeee0 !important; }
+        body.futuristic .text-gray-600 { color: #9fd9b8 !important; }
+        body.futuristic .text-gray-500 { color: #7fbf9a !important; }
+        body.futuristic .text-gray-400 { color: #5f9b78 !important; }
+        body.futuristic .text-gray-300 { color: #4a7b5f !important; }
+        /* Inputs and form labels */
+        body.futuristic input, body.futuristic textarea, body.futuristic select { color: #eafff4; background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.04); }
+        body.futuristic label, body.futuristic .form-label { color: #dfffe8; }
+        /* Small muted text, e.g., helper text */
+        body.futuristic .text-xs, body.futuristic .muted { color: #8fbf9a !important; }
+        /* Center placeholder state in matching area */
+        body.futuristic .text-center.text-gray-400 { color: #7aa07e !important; }
+        /* Ensure icons and emojis in headers are visible */
+        body.futuristic h1, body.futuristic h2, body.futuristic h3 { color: #eafff0; }
+
+          /* Hide debug/detection overlay elements (remove floating green/teal/blue boxes) */
+          #faceBoundingBox, canvas.pdf-overlay { display: none !important; }
+
+          /* Extra safeguard: hide lone absolutely/fixed positioned boxes used for debugging
+              Many dev overlays inject inline styles like "border: 3px solid #..." or similar.
+              The rules below target common patterns used for such debug rectangles and
+              ensure they do not appear in the UI. These are intentionally narrow but
+              robust enough to remove stray boxes like the one in the screenshot. */
+          div[style*="border: 3px solid"] { display: none !important; }
+          div[style*="outline: 3px solid"] { display: none !important; }
+          /* Hide any empty absolutely positioned debug boxes */
+          div[style*="position: absolute"][style*="border"]:empty { display: none !important; }
+
+                /* Force black text color for match results and related match displays */
+                #matchResults, #matchResults * { color: #000 !important; }
+                #liveMatchResultsContent, #liveMatchResultsContent * { color: #000 !important; }
+                .match-result, .match-result-card, .match-result p, .match-result h4, .match-result span, .match-result .progress-bar-fill { color: #000 !important; }
+    </style>
+</head>
+<body class="min-h-screen futuristic">
+    <!-- Header -->
+    <header class="shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold">ViperQB</h1>
+                    <p class="text-sm mt-1">
+                        <span class="font-semibold">♾️ Unlimited images per person</span> • IndexedDB storage • High-quality recognition
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <div id="storageInfo" class="storage-info">
+                        <span>💾</span>
+                        <span id="storageText">Loading...</span>
+                    </div>
+                    <button id="clearStorageBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all shadow-md hover:shadow-lg text-sm font-medium">
+                        🗑 Clear All
+                    </button>
+                    <button id="exportBtn" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all shadow-md hover:shadow-lg text-sm font-medium">
+                        💾 Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <!-- Person Management Section -->
+        <section class="mb-8">
+            <div class="person-card rounded-xl p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold">👥 Person Management</h2>
+                        <p class="text-sm mt-1">Add unlimited face images per person • Higher quality = Better accuracy</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <input type="file" id="importData" accept=".json" class="hidden" multiple>
+                        <button id="importBtn" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all shadow-md hover:shadow-lg text-sm font-medium">
+                            📥 Import
+                        </button>
+                        <button id="addPersonBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-sm font-medium">
+                            ➕ Add Person
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="personContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Person cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Matching Section -->
+        <section>
+            <div class="person-card rounded-xl p-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold">🔍 Face Matching</h2>
+                    <p class="text-sm mt-1">Upload an image to identify registered persons</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold mb-3">📷 Select Image to Match</h3>
+                        <div id="matchDropArea" class="drop-area">
+                            <div class="text-4xl mb-3">📸</div>
+                            <p class="text-gray-700 font-medium mb-2">Drag & drop image here</p>
+                            <p class="text-gray-500 text-sm mb-4">or click to browse</p>
+                            <input type="file" id="matchImageUpload" accept="image/*,application/pdf" class="hidden">
+                            <button id="matchBrowseBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium">
+                                Browse Files
+                            </button>
+                        </div>
+                        
+                        <div id="pdfPreview" class="mt-4"></div>
+                        <div id="matchImagePreview" class="mt-4"></div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-3">📊 Matching Results</h3>
+                        <div id="matchResults" class="space-y-3 min-h-[250px]">
+                            <div class="text-center py-16" style="color: #fff !important;">
+                                <div class="text-5xl mb-3" style="color: #fff !important;">👤</div>
+                                <p class="text-lg font-medium" style="color: #fff !important;">No image uploaded</p>
+                                <p class="text-sm mt-2" style="color: #fff !important;">Upload an image to see matching results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Best Practices Info -->
+        <section class="mt-6">
+            <div class="person-card rounded-xl p-6">
+                <h3 class="text-lg font-bold mb-3">💡 Best Practices for Unlimited Images</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">📸</span>
+                        <div>
+                            <p class="font-semibold text-gray-900">Multiple Angles</p>
+                            <p class="text-gray-600">Add photos from front, side, and various angles for better recognition</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">💡</span>
+                        <div>
+                            <p class="font-semibold text-gray-900">Different Lighting</p>
+                            <p class="text-gray-600">Include images with natural light, indoor lighting, and various conditions</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">🎯</span>
+                        <div>
+                            <p class="font-semibold text-gray-900">High Quality</p>
+                            <p class="text-gray-600">Use clear, high-resolution images for maximum accuracy (no limit on size or quantity)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Person Modal -->
+    <div id="addPersonModal" class="modal">
+        <div class="modal-content">
+            <span class="close">✕</span>
+            <h2 class="text-2xl font-bold mb-6">➕ Add New Person</h2>
+            <form id="addPersonForm">
+                <div class="mb-5">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2" for="personName">Full Name *</label>
+                    <input type="text" id="personName" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter full name" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2" for="personDescription">Description</label>
+                    <textarea id="personDescription" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Optional description or notes"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" id="cancelAddPerson" class="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all font-medium">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium">Add Person</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Person Modal -->
+    <div id="editPersonModal" class="modal">
+        <div class="modal-content">
+            <span class="close">✕</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-900">✏ Edit Person Details</h2>
+            <form id="editPersonForm">
+                <input type="hidden" id="editPersonId">
+                <div class="mb-5">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2" for="editPersonName">Full Name *</label>
+                    <input type="text" id="editPersonName" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                </div>
+                <div class="mb-5">
+                    <label class="block text-gray-800 text-sm font-semibold mb-2" for="editPersonDescription">Description</label>
+                    <textarea id="editPersonDescription" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3"></textarea>
+                </div>
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-gray-800 text-sm font-semibold">Face Images</label>
+                        <div class="flex gap-2 items-center">
+                            <span id="faceCountBadge" class="badge badge-info">0 images</span>
+                            <button type="button" id="clearAllFacesBtn" class="text-xs px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-all font-medium hidden">
+                                🗑 Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div id="editFaceImages" class="flex flex-wrap gap-2 mb-3 min-h-[100px] max-h-[300px] overflow-y-auto p-3 bg-gray-50 rounded-lg border-2 border-gray-200"></div>
+                    <div id="editDropArea" class="drop-area">
+                        <p class="text-gray-700 font-medium mb-2">🖼️ Drag & drop images here</p>
+                        <p class="text-xs text-gray-500 mb-3">Add as many images as you want for better recognition accuracy</p>
+                        <input type="file" id="editImageUpload" accept="image/*" multiple class="hidden">
+                        <button type="button" id="editBrowseBtn" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium">➕ Add More Images</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button type="button" id="cancelEditPerson" class="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all font-medium">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close">✕</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">⚠️ Confirm Action</h2>
+            <p id="confirmMessage" class="mb-6 text-gray-700 text-lg"></p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelConfirm" class="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all font-medium">Cancel</button>
+                <button id="confirmAction" class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div id="processingModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-900">⚙️ Processing Images</h2>
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700">Progress</span>
+                    <span id="processingText" class="text-sm font-bold text-blue-600">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="processingBar" class="progress-bar-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="processingStatus" class="text-gray-600 text-center py-4">
+                <div class="spinner mx-auto mb-3"></div>
+                <p>Initializing...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Test Modal -->
+    <div id="liveTestModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close">✕</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-900">📹 Live Camera Face Testing</h2>
+            
+            <div id="liveTestContainer">
+                <!-- Camera Stream -->
+                <div id="cameraContainer" class="mb-6">
+                    <div class="relative bg-black rounded-xl overflow-hidden shadow-lg" style="aspect-ratio: 4/3;">
+                        <video id="liveVideo" width="100%" height="100%" autoplay playsinline></video>
+                        <canvas id="liveCanvas" style="display: none;"></canvas>
+                        <div id="faceOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div id="faceBoundingBox" style="display: none; border: 3px solid #10b981; border-radius: 10px; position: absolute;"></div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3 text-center">Make sure your face is clearly visible in the camera</p>
+                </div>
+
+                <!-- Status & Instructions -->
+                <div id="liveTestStatus" class="mb-6 p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
+                    <p class="text-sm font-semibold text-blue-900 mb-2">📋 Instructions:</p>
+                    <p class="text-xs text-blue-800">1. Position your face in the center of the camera</p>
+                    <p class="text-xs text-blue-800">2. Follow the liveness checks (turn left, right, top)</p>
+                    <p class="text-xs text-blue-800">3. Wait for face comparison results</p>
+                </div>
+
+                <!-- Liveness Check Progress -->
+                    <div id="livenessContainer" class="mb-6 hidden">
+                        <div class="mb-4">
+                            <h3 class="font-semibold text-gray-900 mb-3" style="color:#fff !important;">🔐 Liveness Check</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3 p-3 rounded-lg" style="background:#f7fafc;" id="checkLeft">
+                                    <span class="text-xl" style="color:#222;">⬅️</span>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" style="color:#222;">Turn Face Left</p>
+                                    </div>
+                                    <span class="text-xl" style="color:#222;">⏳</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg" style="background:#f7fafc;" id="checkRight">
+                                    <span class="text-xl" style="color:#222;">➡️</span>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" style="color:#222;">Turn Face Right</p>
+                                    </div>
+                                    <span class="text-xl" style="color:#222;">⏳</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg" style="background:#f7fafc;" id="checkTop">
+                                    <span class="text-xl" style="color:#222;">⬆️</span>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" style="color:#222;">Look Up</p>
+                                    </div>
+                                    <span class="text-xl" style="color:#222;">⏳</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-lg" style="background:#f7fafc;" id="checkDown">
+                                    <span class="text-xl" style="color:#222;">⬇️</span>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium" style="color:#222;">Look Down</p>
+                                    </div>
+                                    <span class="text-xl" style="color:#222;">⏳</span>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="progress-bar-container">
+                        <div id="livenessProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Match Results -->
+                <div id="liveMatchResults" class="mb-6 hidden">
+                    <h3 class="font-semibold text-gray-900 mb-3">🎯 Matching Results</h3>
+                    <div id="liveMatchResultsContent" class="space-y-3"></div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="flex gap-3 flex-wrap">
+                    <button id="startLiveTestBtn" class="flex-1 min-w-[150px] px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-semibold">
+                        ▶️ Start Live
+                    </button>
+                    <button id="stopLiveTestBtn" class="flex-1 min-w-[150px] px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-semibold hidden">
+                        ⏹️ Stop
+                    </button>
+                    <button id="uploadImageForLiveTestBtn" class="flex-1 min-w-[150px] px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold">
+                        📤 Test with Image
+                    </button>
+                    <input type="file" id="liveTestImageUpload" accept="image/*" class="hidden">
+                    <button id="closeLiveTestBtn" class="flex-1 min-w-[150px] px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all font-semibold">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Container -->
+    <div id="notificationContainer"></div>
+
+    <script>
+        // ===== IndexedDB Database Manager =====
+        class BiometricDB {
+            constructor() {
+                this.dbName = 'BiometricDatabase';
+                this.version = 1;
+                this.db = null;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this.db);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        
+                        // Create object stores
+                        if (!db.objectStoreNames.contains('persons')) {
+                            db.createObjectStore('persons', { keyPath: 'id' });
+                        }
+                        if (!db.objectStoreNames.contains('faces')) {
+                            const faceStore = db.createObjectStore('faces', { keyPath: 'id' });
+                            faceStore.createIndex('personId', 'personId', { unique: false });
+                        }
+                    };
+                });
+            }
+
+            async savePerson(person) {
+                const tx = this.db.transaction(['persons'], 'readwrite');
+                const store = tx.objectStore('persons');
+                await store.put(person);
+                return tx.complete;
+            }
+
+            async getPerson(personId) {
+                const tx = this.db.transaction(['persons'], 'readonly');
+                const store = tx.objectStore('persons');
+                return await this.promisifyRequest(store.get(personId));
+            }
+
+            async getAllPersons() {
+                const tx = this.db.transaction(['persons'], 'readonly');
+                const store = tx.objectStore('persons');
+                return await this.promisifyRequest(store.getAll());
+            }
+
+            async deletePerson(personId) {
+                const tx = this.db.transaction(['persons', 'faces'], 'readwrite');
+                await tx.objectStore('persons').delete(personId);
+                
+                // Delete all faces for this person
+                const faceStore = tx.objectStore('faces');
+                const index = faceStore.index('personId');
+                const faces = await this.promisifyRequest(index.getAll(personId));
+                
+                for (const face of faces) {
+                    await faceStore.delete(face.id);
+                }
+                
+                return tx.complete;
+            }
+
+            async saveFace(face) {
+                const tx = this.db.transaction(['faces'], 'readwrite');
+                const store = tx.objectStore('faces');
+                await store.put(face);
+                return tx.complete;
+            }
+
+            async getFacesByPerson(personId) {
+                const tx = this.db.transaction(['faces'], 'readonly');
+                const store = tx.objectStore('faces');
+                const index = store.index('personId');
+                return await this.promisifyRequest(index.getAll(personId));
+            }
+
+            async deleteFace(faceId) {
+                const tx = this.db.transaction(['faces'], 'readwrite');
+                const store = tx.objectStore('faces');
+                await store.delete(faceId);
+                return tx.complete;
+            }
+
+            async clearAll() {
+                const tx = this.db.transaction(['persons', 'faces'], 'readwrite');
+                await tx.objectStore('persons').clear();
+                await tx.objectStore('faces').clear();
+                return tx.complete;
+            }
+
+            async getStorageEstimate() {
+                if ('storage' in navigator && 'estimate' in navigator.storage) {
+                    return await navigator.storage.estimate();
+                }
+                return { usage: 0, quota: 0 };
+            }
+
+            promisifyRequest(request) {
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            // Helper to convert dataURL to Blob (more efficient storage)
+            dataURLtoBlob(dataURL) {
+                const arr = dataURL.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new Blob([u8arr], { type: mime });
+            }
+
+            // Helper to convert Blob to dataURL
+            async blobToDataURL(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+        }
+
+        // ===== Application State =====
+        const state = {
+            db: new BiometricDB(),
+            currentMatchImage: null,
+            selectedPersonId: null,
+            modelsLoaded: false
+        };
+
+        // ===== DOM Elements =====
+        const elements = {
+            personContainer: document.getElementById('personContainer'),
+            addPersonBtn: document.getElementById('addPersonBtn'),
+            importBtn: document.getElementById('importBtn'),
+            importData: document.getElementById('importData'),
+            exportBtn: document.getElementById('exportBtn'),
+            clearStorageBtn: document.getElementById('clearStorageBtn'),
+            storageText: document.getElementById('storageText'),
+            addPersonModal: document.getElementById('addPersonModal'),
+            editPersonModal: document.getElementById('editPersonModal'),
+            confirmModal: document.getElementById('confirmModal'),
+            processingModal: document.getElementById('processingModal'),
+            matchDropArea: document.getElementById('matchDropArea'),
+            matchImageUpload: document.getElementById('matchImageUpload'),
+            matchBrowseBtn: document.getElementById('matchBrowseBtn'),
+            matchImagePreview: document.getElementById('matchImagePreview'),
+            matchResults: document.getElementById('matchResults'),
+            notificationContainer: document.getElementById('notificationContainer'),
+            processingBar: document.getElementById('processingBar'),
+            processingText: document.getElementById('processingText'),
+            processingStatus: document.getElementById('processingStatus')
+        };
+
+        // ===== Initialize Application =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await state.db.init();
+                await migrateFromLocalStorage();
+                await updateStorageInfo();
+                await renderPersonData();
+                setupEventListeners();
+                await loadFaceApiModels();
+                
+                // Update storage info every 10 seconds
+                setInterval(updateStorageInfo, 10000);
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showNotification('⚠️ Failed to initialize database: ' + error.message, 'error');
+            }
+        });
+
+        // ===== Migrate from localStorage =====
+        async function migrateFromLocalStorage() {
+            const oldData = localStorage.getItem('biometricData');
+            if (!oldData) return;
+
+            try {
+                const data = JSON.parse(oldData);
+                let migratedCount = 0;
+
+                for (const personId in data) {
+                    const person = data[personId];
+                    const { faces, ...personData } = person;
+                    
+                    await state.db.savePerson(personData);
+                    
+                    if (faces && faces.length > 0) {
+                        for (const face of faces) {
+                            await state.db.saveFace({
+                                ...face,
+                                personId: personId
+                            });
+                        }
+                    }
+                    migratedCount++;
+                }
+
+                if (migratedCount > 0) {
+                    localStorage.removeItem('biometricData');
+                    showNotification(`✅ Migrated ${migratedCount} person(s) to IndexedDB`, 'success');
+                }
+            } catch (error) {
+                console.error('Migration error:', error);
+            }
+        }
+
+        // ===== Update Storage Info =====
+        async function updateStorageInfo() {
+            try {
+                const estimate = await state.db.getStorageEstimate();
+                const usedMB = (estimate.usage / 1024 / 1024).toFixed(2);
+                const quotaMB = (estimate.quota / 1024 / 1024).toFixed(0);
+                const usedPercent = ((estimate.usage / estimate.quota) * 100).toFixed(1);
+                
+                elements.storageText.textContent = `${usedMB} MB / ${quotaMB} MB (${usedPercent}%)`;
+            } catch (error) {
+                elements.storageText.textContent = 'Storage info unavailable';
+            }
+        }
+
+        // ===== Load Face-API Models =====
+        async function loadFaceApiModels() {
+            showNotification('🔄 Loading face recognition models...', 'info');
+            
+            try {
+                const MODEL_URL = './model';
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                
+                state.modelsLoaded = true;
+                showNotification('✅ Face recognition models loaded!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Model loading error:', error);
+                state.modelsLoaded = false;
+                showNotification('⚠️ Failed to load models. Place model files in ./model directory.', 'error');
+                showWarningBanner();
+                return false;
+            }
+        }
+
+        // ===== Show Warning Banner =====
+        function showWarningBanner() {
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 mb-6 rounded-lg shadow-md';
+            warningDiv.innerHTML = `
+                <div class="flex items-start">
+                    <span class="text-3xl mr-3">⚠️</span>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-yellow-800 mb-2">Face Recognition Unavailable</h3>
+                        <p class="text-sm text-yellow-700 mb-2">Face detection requires model files. Data management still works.</p>
+                        <a href="https://github.com/justadudewhohacks/face-api.js-models" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline font-medium">📥 Download models →</a>
+                    </div>
+                </div>
+            `;
+            document.querySelector('main').insertBefore(warningDiv, document.querySelector('main').firstChild);
+        }
+
+        // ===== Event Listeners Setup =====
+        function setupEventListeners() {
+            elements.addPersonBtn.addEventListener('click', () => {
+                document.getElementById('personName').value = '';
+                document.getElementById('personDescription').value = '';
+                elements.addPersonModal.style.display = 'block';
+            });
+            
+            elements.importBtn.addEventListener('click', () => elements.importData.click());
+            elements.importData.addEventListener('change', handleImportData);
+            elements.exportBtn.addEventListener('click', handleExportAllData);
+            
+            elements.clearStorageBtn.addEventListener('click', () => {
+                showConfirmModal('Are you sure you want to clear all biometric data? This action cannot be undone.', async () => {
+                    await state.db.clearAll();
+                    await renderPersonData();
+                    await updateStorageInfo();
+                    showNotification('✅ All biometric data cleared', 'success');
+                });
+            });
+            
+            elements.matchBrowseBtn.addEventListener('click', () => elements.matchImageUpload.click());
+            elements.matchImageUpload.addEventListener('change', handleMatchImageUpload);
+            
+            elements.matchDropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                elements.matchDropArea.classList.add('dragover');
+            });
+            
+            elements.matchDropArea.addEventListener('dragleave', () => {
+                elements.matchDropArea.classList.remove('dragover');
+            });
+            
+            elements.matchDropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                elements.matchDropArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    handleMatchFiles(e.dataTransfer.files);
+                }
+            });
+            
+            document.querySelectorAll('.close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', closeAllModals);
+            });
+            
+            document.getElementById('cancelAddPerson').addEventListener('click', () => {
+                elements.addPersonModal.style.display = 'none';
+            });
+            
+            document.getElementById('cancelEditPerson').addEventListener('click', () => {
+                elements.editPersonModal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    closeAllModals();
+                }
+            });
+            
+            document.getElementById('addPersonForm').addEventListener('submit', handleAddPerson);
+            document.getElementById('editPersonForm').addEventListener('submit', handleEditPerson);
+            
+            document.getElementById('editBrowseBtn').addEventListener('click', () => {
+                document.getElementById('editImageUpload').click();
+            });
+            
+            document.getElementById('editImageUpload').addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    processEditImages(e.target.files);
+                    e.target.value = '';
+                }
+            });
+            
+            const editDropArea = document.getElementById('editDropArea');
+            editDropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                editDropArea.classList.add('dragover');
+            });
+            
+            editDropArea.addEventListener('dragleave', () => {
+                editDropArea.classList.remove('dragover');
+            });
+            
+            editDropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                editDropArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    processEditImages(e.dataTransfer.files);
+                }
+            });
+        }
+
+        // ===== Close All Modals =====
+        function closeAllModals() {
+            elements.addPersonModal.style.display = 'none';
+            elements.editPersonModal.style.display = 'none';
+            elements.confirmModal.style.display = 'none';
+        }
+
+        // ===== Add Person =====
+        async function handleAddPerson(e) {
+            e.preventDefault();
+            const name = document.getElementById('personName').value.trim();
+            const description = document.getElementById('personDescription').value.trim();
+            
+            if (!name) {
+                showNotification('⚠️ Please enter a name', 'error');
+                return;
+            }
+            
+            await createNewPerson(name, description);
+            await renderPersonData();
+            elements.addPersonModal.style.display = 'none';
+            showNotification(`✅ Person "${name}" added successfully`, 'success');
+        }
+
+        // ===== Edit Person =====
+        async function handleEditPerson(e) {
+            e.preventDefault();
+            const personId = document.getElementById('editPersonId').value;
+            const name = document.getElementById('editPersonName').value.trim();
+            const description = document.getElementById('editPersonDescription').value.trim();
+            
+            if (!name) {
+                showNotification('⚠️ Please enter a name', 'error');
+                return;
+            }
+            
+            const person = await state.db.getPerson(personId);
+            if (person) {
+                person.name = name;
+                person.description = description;
+                await state.db.savePerson(person);
+                await renderPersonData();
+                elements.editPersonModal.style.display = 'none';
+                showNotification(`✅ Person "${name}" updated successfully`, 'success');
+            }
+        }
+
+        // ===== Create New Person =====
+        async function createNewPerson(name, description = '') {
+            const personId = `person_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const person = {
+                id: personId,
+                name: name,
+                description: description,
+                createdAt: new Date().toISOString()
+            };
+            await state.db.savePerson(person);
+            return personId;
+        }
+
+        // ===== Render Person Data =====
+        async function renderPersonData() {
+            elements.personContainer.innerHTML = '';
+            
+            const persons = await state.db.getAllPersons();
+            
+            if (persons.length === 0) {
+                elements.personContainer.innerHTML = `
+                    <div class="col-span-full text-center py-16">
+                        <div class="text-6xl mb-4">👥</div>
+                        <p class="text-gray-500 text-lg">No persons available</p>
+                        <p class="text-gray-400 text-sm mt-2">Add a person to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            for (const person of persons) {
+                const faces = await state.db.getFacesByPerson(person.id);
+                const faceCount = faces.length;
+                
+                const card = document.createElement('div');
+                card.className = 'person-card rounded-xl shadow-md overflow-hidden';
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-900">${person.name}</h3>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    <span class="badge ${faceCount > 0 ? 'badge-success' : 'badge-warning'}">
+                                        ${faceCount} face${faceCount !== 1 ? 's' : ''}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="export-person-btn icon-btn icon-download" data-id="${person.id}" title="Export">⬇</button>
+                                <button class="edit-person-btn icon-btn icon-edit" data-id="${person.id}" title="Edit">✏</button>
+                                <button class="delete-person-btn icon-btn icon-delete" data-id="${person.id}" title="Delete">🗑</button>
+                            </div>
+                        </div>
+                        <p class="text-gray-700 text-sm mb-4 min-h-[40px]">${person.description || 'No description provided'}</p>
+                        <div class="mb-4">
+                            <div class="flex justify-between text-xs text-gray-500 mb-2">
+                                <span>Registered Faces</span>
+                                <span class="font-bold ${faceCount > 0 ? 'text-blue-600' : 'text-gray-400'}">${faceCount} ${faceCount === 1 ? 'image' : 'images'}</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" style="width: ${faceCount === 0 ? 0 : Math.min(100, 20 + (faceCount * 2))}%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1 text-right">
+                                ${faceCount === 0 ? 'No images yet' : faceCount < 5 ? 'Add more for better accuracy' : faceCount < 10 ? 'Good coverage' : faceCount < 20 ? 'Excellent coverage' : 'Outstanding coverage (' + faceCount + ' images)'}
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="live-capture-btn flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all shadow-md hover:shadow-lg font-semibold" data-id="${person.id}">
+                                📹 Live Capture
+                            </button>
+                            <button class="add-images-btn flex-1 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all shadow-md hover:shadow-lg font-semibold" data-id="${person.id}">
+                                📸 Add Images
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                elements.personContainer.appendChild(card);
+            }
+            
+            document.querySelectorAll('.live-capture-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => startLiveCaptureForPerson(e.currentTarget.dataset.id));
+            });
+            
+            document.querySelectorAll('.export-person-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => exportPersonData(e.currentTarget.dataset.id));
+            });
+            
+            document.querySelectorAll('.edit-person-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => openEditPersonModal(e.currentTarget.dataset.id));
+            });
+            
+            document.querySelectorAll('.delete-person-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const personId = e.currentTarget.dataset.id;
+                    showConfirmModal('Are you sure you want to delete this person and all face data?', async () => {
+                        const person = await state.db.getPerson(personId);
+                        await state.db.deletePerson(personId);
+                        await renderPersonData();
+                        await updateStorageInfo();
+                        showNotification(`✅ Person "${person.name}" deleted`, 'success');
+                    });
+                });
+            });
+            
+            document.querySelectorAll('.add-images-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!state.modelsLoaded) {
+                        showNotification('⚠️ Face recognition models not loaded', 'error');
+                        return;
+                    }
+                    const personId = e.currentTarget.dataset.id;
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.multiple = true;
+                    input.onchange = (e) => {
+                        if (e.target.files.length) {
+                            processImagesForPerson(e.target.files, personId);
+                        }
+                    };
+                    input.click();
+                });
+            });
+        }
+
+        // ===== Open Edit Person Modal =====
+        async function openEditPersonModal(personId) {
+            const person = await state.db.getPerson(personId);
+            if (!person) return;
+            
+            document.getElementById('editPersonId').value = personId;
+            document.getElementById('editPersonName').value = person.name;
+            document.getElementById('editPersonDescription').value = person.description || '';
+            
+            const faceImagesContainer = document.getElementById('editFaceImages');
+            faceImagesContainer.innerHTML = '';
+            
+            const faces = await state.db.getFacesByPerson(personId);
+            
+            // Update face count badge
+            const faceCountBadge = document.getElementById('faceCountBadge');
+            faceCountBadge.textContent = `${faces.length} ${faces.length === 1 ? 'image' : 'images'}`;
+            faceCountBadge.className = `badge ${faces.length > 0 ? 'badge-success' : 'badge-warning'}`;
+            
+            // Show/hide clear all button
+            const clearAllBtn = document.getElementById('clearAllFacesBtn');
+            if (faces.length > 0) {
+                clearAllBtn.classList.remove('hidden');
+                clearAllBtn.onclick = () => {
+                    showConfirmModal(`Are you sure you want to delete all ${faces.length} face image(s)? This cannot be undone.`, async () => {
+                        for (const face of faces) {
+                            await state.db.deleteFace(face.id);
+                        }
+                        await updateStorageInfo();
+                        await openEditPersonModal(personId);
+                        showNotification(`✅ Deleted ${faces.length} face image(s)`, 'success');
+                    });
+                };
+            } else {
+                clearAllBtn.classList.add('hidden');
+            }
+            
+            if (faces.length > 0) {
+                for (const face of faces) {
+                    const faceDiv = document.createElement('div');
+                    faceDiv.className = 'relative group';
+                    faceDiv.innerHTML = `
+                        <img src="${face.imageData}" class="face-thumbnail" data-id="${face.id}" alt="Face" title="${face.metadata?.filename || 'Face image'}">
+                        <button type="button" class="remove-face-btn absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100" data-id="${face.id}" title="Remove this image">
+                            <span class="text-white font-bold text-lg">✕</span>
+                        </button>
+                    `;
+                    faceImagesContainer.appendChild(faceDiv);
+                }
+                
+                document.querySelectorAll('.remove-face-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        removeFaceFromPerson(personId, e.currentTarget.dataset.id);
+                    });
+                });
+            } else {
+                faceImagesContainer.innerHTML = `
+                    <div class="w-full text-center py-8">
+                        <div class="text-5xl mb-3">📸</div>
+                        <p class="text-gray-500 text-sm font-medium">No face images added yet</p>
+                        <p class="text-gray-400 text-xs mt-1">Add multiple images from different angles for best results</p>
+                    </div>
+                `;
+            }
+            
+            elements.editPersonModal.style.display = 'block';
+        }
+
+        // ===== Process Images For Person =====
+        async function processImagesForPerson(files, personId) {
+            const person = await state.db.getPerson(personId);
+            if (!person) {
+                showNotification('⚠️ Person not found', 'error');
+                return;
+            }
+            
+            elements.processingModal.style.display = 'block';
+            elements.processingBar.style.width = '0%';
+            elements.processingText.textContent = '0%';
+            elements.processingStatus.innerHTML = '<div class="spinner mx-auto mb-3"></div><p>Initializing face detection...</p>';
+            
+            // Show special message for large batches
+            if (files.length > 20) {
+                showNotification(`📦 Processing ${files.length} images. This may take a few minutes...`, 'info');
+            }
+            
+            try {
+                const totalFiles = files.length;
+                let processedCount = 0;
+                let successCount = 0;
+                let facesDetected = 0;
+                
+                for (let i = 0; i < totalFiles; i++) {
+                    const file = files[i];
+                    processedCount++;
+                    const progress = Math.round((processedCount / totalFiles) * 100);
+                    
+                    elements.processingBar.style.width = `${progress}%`;
+                    elements.processingText.textContent = `${progress}%`;
+                    elements.processingStatus.innerHTML = `
+                        <p>Processing ${file.name}</p>
+                        <p class="text-sm text-gray-500 mt-1">(${processedCount}/${totalFiles})</p>
+                        <p class="text-xs text-blue-600 mt-2">${facesDetected} faces detected so far</p>
+                    `;
+                    
+                    try {
+                        const detectedFaces = await processSingleImageForPerson(file, personId);
+                        if (detectedFaces > 0) {
+                            successCount++;
+                            facesDetected += detectedFaces;
+                        }
+                    } catch (error) {
+                        console.error(`Failed: ${file.name}`, error);
+                    }
+                }
+                
+                elements.processingStatus.innerHTML = `
+                    <p class="text-green-600 font-semibold text-lg">✅ Complete!</p>
+                    <p class="text-sm mt-2">Processed ${successCount} of ${totalFiles} images</p>
+                    <p class="text-sm text-blue-600 font-medium mt-1">Total: ${facesDetected} faces detected</p>
+                `;
+                
+                if (successCount > 0) {
+                    showNotification(`✅ Successfully added ${facesDetected} face(s) from ${successCount} image(s)`, 'success');
+                } else {
+                    showNotification('⚠️ No faces detected in any images', 'warning');
+                }
+                
+                await renderPersonData();
+                await updateStorageInfo();
+                
+                setTimeout(() => {
+                    elements.processingModal.style.display = 'none';
+                }, 2500);
+                
+            } catch (error) {
+                elements.processingStatus.innerHTML = `<p class="text-red-600 font-semibold">❌ Error</p><p class="text-sm mt-2">${error.message}</p>`;
+                showNotification('⚠️ Processing failed', 'error');
+            }
+        }
+
+        // ===== Process Single Image =====
+        async function processSingleImageForPerson(file, personId) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                };
+                
+                reader.onerror = () => reject(new Error(`Failed to read: ${file.name}`));
+                
+                img.onload = async () => {
+                    try {
+                        const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+                            .withFaceLandmarks()
+                            .withFaceDescriptors();
+                        
+                        if (detections.length === 0) {
+                            resolve(0);
+                            return;
+                        }
+                        
+                        for (const detection of detections) {
+                            const faceId = `face_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                            
+                            await state.db.saveFace({
+                                id: faceId,
+                                personId: personId,
+                                descriptor: Array.from(detection.descriptor),
+                                imageData: img.src, // Store as data URL (high quality)
+                                timestamp: new Date().toISOString(),
+                                metadata: {
+                                    filename: file.name,
+                                    fileSize: file.size
+                                }
+                            });
+                        }
+                        
+                        resolve(detections.length);
+                    } catch (error) {
+                        reject(new Error(`Face detection failed: ${error.message}`));
+                    }
+                };
+                
+                img.onerror = () => reject(new Error(`Failed to load: ${file.name}`));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ===== Process Edit Images =====
+        async function processEditImages(files) {
+            const personId = document.getElementById('editPersonId').value;
+            if (!personId) {
+                showNotification('⚠️ Person not found', 'error');
+                return;
+            }
+            
+            if (!state.modelsLoaded) {
+                showNotification('⚠️ Face recognition models not loaded', 'error');
+                return;
+            }
+            
+            elements.processingModal.style.display = 'block';
+            elements.processingBar.style.width = '0%';
+            elements.processingText.textContent = '0%';
+            elements.processingStatus.innerHTML = '<div class="spinner mx-auto mb-3"></div><p>Initializing...</p>';
+            
+            if (files.length > 20) {
+                showNotification(`📦 Processing ${files.length} images...`, 'info');
+            }
+            
+            try {
+                const totalFiles = files.length;
+                let processedCount = 0;
+                let successCount = 0;
+                let facesDetected = 0;
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    processedCount++;
+                    const progress = Math.round((processedCount / totalFiles) * 100);
+                    
+                    elements.processingBar.style.width = `${progress}%`;
+                    elements.processingText.textContent = `${progress}%`;
+                    elements.processingStatus.innerHTML = `
+                        <p>Processing ${file.name}</p>
+                        <p class="text-sm text-gray-500 mt-1">(${processedCount}/${totalFiles})</p>
+                        <p class="text-xs text-blue-600 mt-2">${facesDetected} faces detected</p>
+                    `;
+                    
+                    try {
+                        const detected = await processSingleImageForPerson(file, personId);
+                        if (detected > 0) {
+                            successCount++;
+                            facesDetected += detected;
+                        }
+                    } catch (error) {
+                        console.error(`Failed: ${file.name}`, error);
+                    }
+                }
+                
+                elements.processingStatus.innerHTML = `
+                    <p class="text-green-600 font-semibold">✅ Added ${facesDetected} faces!</p>
+                    <p class="text-sm mt-1">From ${successCount} of ${totalFiles} images</p>
+                `;
+                
+                if (successCount > 0) {
+                    showNotification(`✅ Added ${facesDetected} face(s) from ${successCount} image(s)!`, 'success');
+                }
+                
+                await updateStorageInfo();
+                
+                setTimeout(() => {
+                    elements.processingModal.style.display = 'none';
+                    openEditPersonModal(personId);
+                }, 1500);
+                
+            } catch (error) {
+                elements.processingStatus.innerHTML = `<p class="text-red-600">❌ Error: ${error.message}</p>`;
+                showNotification('⚠️ Failed to add images', 'error');
+            }
+        }
+
+        // ===== Remove Face =====
+        async function removeFaceFromPerson(personId, faceId) {
+            await state.db.deleteFace(faceId);
+            await updateStorageInfo();
+            await openEditPersonModal(personId);
+            showNotification('✅ Face removed successfully', 'success');
+        }
+
+        // ===== Handle Match Image Upload =====
+        function handleMatchImageUpload(e) {
+            if (e.target.files.length) {
+                const file = e.target.files[0];
+                if (file.type === 'application/pdf' || file.type === 'application/x-pdf') {
+                    handlePdfUpload(file);
+                } else {
+                    handleMatchFiles(e.target.files);
+                }
+                e.target.value = '';
+            }
+        }
+
+        // ===== Handle Match Files =====
+        function handleMatchFiles(files) {
+            if (!state.modelsLoaded) {
+                showNotification('⚠️ Face recognition models not loaded', 'error');
+                return;
+            }
+            // If a PDF is provided via drag/drop, handle it
+            const pdfFile = Array.from(files).find(file => file.type === 'application/pdf' || file.type === 'application/x-pdf');
+            if (pdfFile) {
+                handlePdfUpload(pdfFile);
+                return;
+            }
+
+            const imageFile = Array.from(files).find(file => file.type.startsWith('image/'));
+
+            if (!imageFile) {
+                showNotification('⚠️ Please select a valid image or PDF file', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                elements.matchImagePreview.innerHTML = `
+                    <div class="relative">
+                        <img src="${e.target.result}" class="face-image">
+                        <div class="mt-2 text-center text-sm text-gray-600">${imageFile.name}</div>
+                    </div>
+                `;
+                state.currentMatchImage = e.target.result;
+                performMatching(e.target.result);
+            };
+            reader.readAsDataURL(imageFile);
+        }
+
+        // ===== Perform Face Matching =====
+        async function performMatching(imageSrc) {
+            elements.matchResults.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="spinner mx-auto mb-4"></div>
+                    <p class="text-gray-600 font-medium">Analyzing faces...</p>
+                </div>
+            `;
+            
+            try {
+                const img = new Image();
+                img.src = imageSrc;
+                
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = () => reject(new Error('Failed to load image'));
+                });
+                
+                const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+                
+                if (detections.length === 0) {
+                    elements.matchResults.innerHTML = `
+                        <div class="text-center py-12 bg-red-50 rounded-xl border-2 border-red-200">
+                            <div class="text-5xl mb-3">⚠️</div>
+                            <p class="text-red-600 font-bold text-lg">No Faces Detected</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const persons = await state.db.getAllPersons();
+                
+                if (persons.length === 0) {
+                    elements.matchResults.innerHTML = `
+                        <div class="text-center py-12 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+                            <div class="text-5xl mb-3">📋</div>
+                            <p class="text-yellow-800 font-bold text-lg">No Person Data</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const results = [];
+                
+                for (const person of persons) {
+                    const faces = await state.db.getFacesByPerson(person.id);
+                    if (faces.length === 0) continue;
+                    
+                    const personResults = [];
+                    
+                    for (const face of faces) {
+                        const storedDescriptor = new faceapi.LabeledFaceDescriptors(
+                            person.id,
+                            [new Float32Array(face.descriptor)]
+                        );
+                        
+                        const faceMatcher = new faceapi.FaceMatcher(storedDescriptor);
+                        const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
+                        
+                        personResults.push({
+                            personName: person.name,
+                            distance: bestMatch.distance,
+                            matchPercentage: Math.max(0, Math.min(100, Math.round((1 - bestMatch.distance) * 100)))
+                        });
+                    }
+                    
+                    if (personResults.length > 0) {
+                        const best = personResults.reduce((p, c) => p.matchPercentage > c.matchPercentage ? p : c);
+                        results.push(best);
+                    }
+                }
+                
+                results.sort((a, b) => b.matchPercentage - a.matchPercentage);
+                
+                if (results.length === 0) {
+                    elements.matchResults.innerHTML = `
+                        <div class="text-center py-12 bg-gray-50 rounded-xl border-2 border-gray-200">
+                            <div class="text-5xl mb-3">🔍</div>
+                            <p class="text-gray-700 font-bold text-lg">No Matches Found</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const top = results[0];
+                const matchIcon = top.matchPercentage > 70 ? '✅' : top.matchPercentage > 40 ? '⚠️' : '❌';
+                const matchText = top.matchPercentage > 70 ? 'High Confidence Match' : top.matchPercentage > 40 ? 'Possible Match' : 'Low Confidence';
+                
+                elements.matchResults.innerHTML = `
+                    <div class="mb-4 p-4 rounded-xl border-2 ${top.matchPercentage > 70 ? 'bg-green-50 border-green-300' : top.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-red-50 border-red-300'}">
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">${matchIcon}</span>
+                            <p class="font-bold ${top.matchPercentage > 70 ? 'text-green-800' : top.matchPercentage > 40 ? 'text-yellow-800' : 'text-red-800'}">${matchText}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        ${results.slice(0, 5).map(r => `
+                            <div class="match-result p-4 rounded-xl border-2" style="background:#f7fafc; color:#000; border-color: rgba(0,0,0,0.06);">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="font-bold text-lg" style="color:#000">${r.personName}</h4>
+                                    <span class="text-2xl font-bold" style="color:#000">${r.matchPercentage}%</span>
+                                </div>
+                                <div class="progress-bar-container mb-2">
+                                    <div class="progress-bar-fill ${r.matchPercentage > 70 ? 'bg-gradient-to-r from-green-500 to-green-600' : r.matchPercentage > 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-gray-400 to-gray-500'}" style="width: ${r.matchPercentage}%; color: #000"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                showNotification(`🎯 Best match: ${top.personName} (${top.matchPercentage}%)`, 'success');
+                
+            } catch (error) {
+                elements.matchResults.innerHTML = `
+                    <div class="text-center py-12 bg-red-50 rounded-xl border-2 border-red-200">
+                        <div class="text-5xl mb-3">❌</div>
+                        <p class="text-red-600 font-bold text-lg">Matching Error</p>
+                        <p class="text-gray-600 text-sm mt-2">${error.message}</p>
+                    </div>
+                `;
+                showNotification('⚠️ Matching failed', 'error');
+            }
+        }
+
+        // ===== Import Data =====
+        async function handleImportData(e) {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+            
+            let importedCount = 0;
+            
+            for (const file of files) {
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    
+                    if (data.id && data.name) {
+                        const { faces, ...personData } = data;
+                        await state.db.savePerson(personData);
+                        
+                        if (faces && faces.length > 0) {
+                            for (const face of faces) {
+                                await state.db.saveFace({
+                                    ...face,
+                                    personId: data.id
+                                });
+                            }
+                        }
+                        importedCount++;
+                    } else if (typeof data === 'object') {
+                        for (const key in data) {
+                            if (data[key].id && data[key].name) {
+                                const { faces, ...personData } = data[key];
+                                await state.db.savePerson(personData);
+                                
+                                if (faces && faces.length > 0) {
+                                    for (const face of faces) {
+                                        await state.db.saveFace({
+                                            ...face,
+                                            personId: data[key].id
+                                        });
+                                    }
+                                }
+                                importedCount++;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    showNotification(`⚠️ Failed to import ${file.name}`, 'error');
+                }
+            }
+            
+            if (importedCount > 0) {
+                await renderPersonData();
+                await updateStorageInfo();
+                showNotification(`✅ Imported ${importedCount} person(s)`, 'success');
+            }
+            
+            e.target.value = '';
+        }
+
+        // ===== Export All Data =====
+        async function handleExportAllData() {
+            const persons = await state.db.getAllPersons();
+            
+            if (persons.length === 0) {
+                showNotification('⚠️ No data to export', 'warning');
+                return;
+            }
+            
+            try {
+                const exportData = {};
+                
+                for (const person of persons) {
+                    const faces = await state.db.getFacesByPerson(person.id);
+                    exportData[person.id] = {
+                        ...person,
+                        faces: faces
+                    };
+                }
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const filename = `biometric_data_all_${new Date().toISOString().slice(0, 10)}.json`;
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                showNotification(`✅ Exported ${persons.length} person(s)`, 'success');
+            } catch (error) {
+                showNotification('⚠️ Export failed: ' + error.message, 'error');
+            }
+        }
+
+        // ===== Export Person Data =====
+        async function exportPersonData(personId) {
+            const person = await state.db.getPerson(personId);
+            if (!person) {
+                showNotification('⚠️ Person not found', 'error');
+                return;
+            }
+            
+            try {
+                const faces = await state.db.getFacesByPerson(personId);
+                const exportData = {
+                    ...person,
+                    faces: faces
+                };
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const safeName = person.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const filename = `person_${safeName}_${new Date().toISOString().slice(0, 10)}.json`;
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                showNotification(`✅ Exported "${person.name}" with ${faces.length} face(s)`, 'success');
+            } catch (error) {
+                showNotification('⚠️ Export failed', 'error');
+            }
+        }
+
+        // ===== Show Notification =====
+        function showNotification(message, type = 'info') {
+            const bgColor = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6'
+            }[type] || '#3b82f6';
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.backgroundColor = bgColor;
+            notification.innerHTML = `
+                <div class="flex items-center justify-between gap-3">
+                    <span class="flex-1 font-medium">${message}</span>
+                    <button class="text-white hover:text-gray-200 font-bold text-xl" onclick="this.parentElement.parentElement.classList.add('hiding'); setTimeout(() => this.parentElement.parentElement.remove(), 300)">✕</button>
+                </div>
+            `;
+            
+            elements.notificationContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('hiding');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // ===== Show Confirm Modal =====
+        function showConfirmModal(message, onConfirm) {
+            document.getElementById('confirmMessage').textContent = message;
+            elements.confirmModal.style.display = 'block';
+            
+            const confirmBtn = document.getElementById('confirmAction');
+            const cancelBtn = document.getElementById('cancelConfirm');
+            
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+            
+            newConfirmBtn.onclick = () => {
+                onConfirm();
+                elements.confirmModal.style.display = 'none';
+            };
+            
+            newCancelBtn.onclick = () => {
+                elements.confirmModal.style.display = 'none';
+            };
+        }
+
+        // ===== Live Camera Testing =====
+        class LiveCameraTester {
+            constructor() {
+                this.video = document.getElementById('liveVideo');
+                this.canvas = document.getElementById('liveCanvas');
+                this.stream = null;
+                this.isRunning = false;
+                this.targetPersonId = null; // Person ID for capturing images
+                this.capturedImages = []; // Store captured images
+                this.livenessChecks = {
+                    left: false,
+                    right: false,
+                    up: false,
+                    down: false
+                };
+                this.capturedFrames = {
+                    left: null,
+                    right: null,
+                    up: null,
+                    down: null
+                };
+                this.currentChallenge = null;
+            }
+
+            async init() {
+                console.log('📹 Initializing camera...');
+
+                // Check browser support
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showNotification('❌ Camera not supported. Try Firefox or Edge.', 'error');
+                    return false;
+                }
+
+                try {
+                    // Try with ABSOLUTELY MINIMAL constraints first
+                    let stream = null;
+                    const constraintSets = [
+                        { video: true, audio: false },  // Bare minimum
+                        { video: { width: 640, height: 480 }, audio: false },
+                        { video: { width: { max: 1280 }, height: { max: 720 } }, audio: false },
+                        { video: { facingMode: 'user' }, audio: false }
+                    ];
+
+                    for (let constraints of constraintSets) {
+                        try {
+                            console.log('Trying constraints:', constraints);
+                            stream = await navigator.mediaDevices.getUserMedia(constraints);
+                            if (stream && stream.getVideoTracks().length > 0) {
+                                console.log('✅ Got stream!');
+                                break;
+                            }
+                        } catch (e) {
+                            console.log('Constraint failed, trying next...', e.message);
+                            continue;
+                        }
+                    }
+
+                    if (!stream) {
+                        showNotification('⚠️ Cannot access camera. Try:\n1. Close Chrome completely\n2. Restart your PC\n3. Or use Firefox', 'error');
+                        return false;
+                    }
+
+                    this.stream = stream;
+                    this.video.srcObject = stream;
+                    this.video.muted = true;
+                    
+                    // Wait for video to actually play
+                    return new Promise((resolve) => {
+                        const checkVideo = () => {
+                            if (this.video.readyState >= 2) {
+                                this.video.play().catch(e => console.warn('Play warning:', e));
+                                console.log('✅ Camera ready!');
+                                resolve(true);
+                            } else {
+                                setTimeout(checkVideo, 100);
+                            }
+                        };
+                        setTimeout(() => resolve(true), 3000); // Timeout after 3s anyway
+                        checkVideo();
+                    });
+
+                } catch (error) {
+                    console.error('Init error:', error.name, error.message);
+                    showNotification(`❌ ${error.name}: ${error.message}\n\nTry:\n• Restart your browser\n• Close other camera apps\n• Use Firefox instead`, 'error');
+                    return false;
+                }
+            }
+
+            stop() {
+                this.isRunning = false;
+                if (this.stream) {
+                    // Properly stop all tracks
+                    this.stream.getTracks().forEach(track => {
+                        track.stop();
+                        track.enabled = false;
+                    });
+                    this.stream = null;
+                }
+                if (this.video) {
+                    this.video.srcObject = null;
+                }
+            }
+
+            async reinitCamera() {
+                // Release and retry camera initialization
+                this.stop();
+                await new Promise(r => setTimeout(r, 500)); // Wait before retry
+                return this.init();
+            }
+
+            async startLivenessChecks() {
+                const canvas = document.getElementById('liveCanvas');
+                const ctx = canvas.getContext('2d');
+                const video = this.video;
+
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+
+                const challenges = ['right', 'left', 'up', 'down'];
+                const instructions = {
+                    'right': '➡️ Turn Your Face RIGHT',
+                    'left': '⬅️ Turn Your Face LEFT',
+                    'up': '⬆️ Look UP',
+                    'down': '⬇️ Look DOWN'
+                };
+
+                // Measure neutral pose baseline before starting challenges
+                try {
+                    this.neutralPose = await this.measureNeutralPose(canvas, ctx, video, 6);
+                    console.debug('[startLivenessChecks] neutralPose', this.neutralPose);
+                } catch (e) {
+                    console.warn('Neutral pose measurement failed, proceeding without baseline', e);
+                    this.neutralPose = null;
+                }
+
+                // Reset UI (safely, only when elements exist)
+                const elCheckLeft = document.getElementById('checkLeft');
+                const elCheckRight = document.getElementById('checkRight');
+                const elCheckTop = document.getElementById('checkTop');
+                const elCheckDown = document.getElementById('checkDown');
+                if (elCheckLeft) elCheckLeft.querySelector('span:last-child').textContent = '⏳';
+                if (elCheckRight) elCheckRight.querySelector('span:last-child').textContent = '⏳';
+                if (elCheckTop) elCheckTop.querySelector('span:last-child').textContent = '⏳';
+                if (elCheckDown) elCheckDown.querySelector('span:last-child').textContent = '⏳';
+                const elProgress = document.getElementById('livenessProgressBar');
+                if (elProgress) elProgress.style.width = '0%';
+
+                let completedChallenges = 0;
+
+                for (const challenge of challenges) {
+                    if (!this.isRunning) return false;
+
+                    showNotification(instructions[challenge] + ' (hold for 2 seconds)', 'info');
+                    const passed = await this.detectChallenge(canvas, ctx, video, challenge);
+
+                    if (passed) {
+                        // Capture the face image for this pose
+                        await this.captureAndSaveImage(canvas, challenge);
+
+                        completedChallenges++;
+                        const checkId = challenge === 'left' ? 'checkLeft' : challenge === 'right' ? 'checkRight' : challenge === 'up' ? 'checkTop' : 'checkDown';
+                        const checkEl = document.getElementById(checkId);
+                        if (checkEl) {
+                            const span = checkEl.querySelector('span:last-child');
+                            if (span) span.textContent = '✅';
+                            checkEl.classList.add('bg-green-100');
+                        }
+
+                        showNotification(`✅ ${challenge.toUpperCase()} captured!`, 'success');
+                    }
+
+                    const progress = (completedChallenges / 4) * 100;
+                    document.getElementById('livenessProgressBar').style.width = progress + '%';
+
+                    if (!passed) {
+                        showNotification(`❌ Could not detect ${challenge} head turn. Try again.`, 'error');
+                        return false;
+                    }
+                }
+
+                // Save all captured images to person's profile
+                if (completedChallenges === 4 && this.targetPersonId && this.capturedImages.length > 0) {
+                    await this.saveAllCapturedImages();
+                    showNotification(`✅ Saved ${this.capturedImages.length} face images for ${this.targetPersonId}!`, 'success');
+                }
+
+                return completedChallenges === 4;
+            }
+
+            async measureNeutralPose(canvas, ctx, video, frames = 6) {
+                const poses = [];
+                for (let i = 0; i < frames; i++) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    try {
+                        const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+                        if (detection && detection.landmarks) {
+                            const p = this.calculateHeadPose(detection.landmarks.positions);
+                            poses.push(p);
+                        }
+                    } catch (e) {
+                        // ignore frame errors
+                    }
+                    await new Promise(r => setTimeout(r, 120));
+                }
+
+                if (poses.length === 0) return null;
+
+                const avg = poses.reduce((acc, p) => {
+                    acc.yaw += p.yaw || 0;
+                    acc.pitch += p.pitch || 0;
+                    acc.yawRatio += p.yawRatio || 0;
+                    acc.pitchRatio += p.pitchRatio || 0;
+                    acc.noseYOffsetRatio += p.noseYOffsetRatio || 0;
+                    return acc;
+                }, { yaw: 0, pitch: 0, yawRatio: 0, pitchRatio: 0, noseYOffsetRatio: 0 });
+
+                Object.keys(avg).forEach(k => avg[k] = avg[k] / poses.length);
+                return avg;
+            }
+
+            async captureAndSaveImage(canvas, challengeName) {
+                const imageData = canvas.toDataURL('image/jpeg', 0.95);
+                this.capturedImages.push({
+                    data: imageData,
+                    challenge: challengeName,
+                    timestamp: new Date().toISOString()
+                });
+                console.log(`📸 Captured image for ${challengeName}: ${this.capturedImages.length} total`);
+            }
+
+            async saveAllCapturedImages() {
+                if (!this.targetPersonId) return;
+
+                try {
+                    for (const imgData of this.capturedImages) {
+                        // Detect face in the captured image
+                        const img = new Image();
+                        img.src = imgData.data;
+
+                        await new Promise((resolve) => {
+                            img.onload = async () => {
+                                try {
+                                    const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+                                        .withFaceLandmarks()
+                                        .withFaceDescriptors();
+
+                                    if (detections.length > 0) {
+                                        for (const detection of detections) {
+                                            const faceId = `face_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                                            await state.db.saveFace({
+                                                id: faceId,
+                                                personId: this.targetPersonId,
+                                                descriptor: Array.from(detection.descriptor),
+                                                imageData: imgData.data,
+                                                timestamp: imgData.timestamp,
+                                                metadata: {
+                                                    challenge: imgData.challenge,
+                                                    source: 'live_capture'
+                                                }
+                                            });
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Face detection error:', error);
+                                }
+                                resolve();
+                            };
+                            img.onerror = resolve;
+                        });
+                    }
+
+                    await updateStorageInfo();
+                    await renderPersonData();
+                } catch (error) {
+                    console.error('Save images error:', error);
+                }
+            }
+
+            async detectChallenge(canvas, ctx, video, challenge) {
+                return new Promise((resolve) => {
+                    let detectedCount = 0;
+                    const requiredDetections = 4; // fewer frames needed for responsiveness
+                    const timeoutMs = 10000;
+                    const timeoutId = setTimeout(() => {
+                        resolve(false); // Timeout after timeoutMs
+                    }, timeoutMs);
+
+                    const checkPose = async () => {
+                        if (!this.isRunning) {
+                            clearTimeout(timeoutId);
+                            resolve(false);
+                            return;
+                        }
+
+                        try {
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const detections = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
+                                .withFaceLandmarks();
+
+                            if (detections && detections.landmarks) {
+                                const landmarks = detections.landmarks.positions;
+                                const pose = this.calculateHeadPose(landmarks);
+
+                                // Debug logging to help diagnose left/right asymmetry
+                                try {
+                                    console.debug(`[detectChallenge] ${challenge} - yaw=${pose.yaw.toFixed(2)} yawRatio=${(pose.yawRatio||0).toFixed(3)} pitch=${pose.pitch.toFixed(2)} pitchRatio=${(pose.pitchRatio||0).toFixed(3)} noseYOffset=${(pose.noseYOffsetRatio||0).toFixed(3)} detectedCount=${detectedCount}`);
+                                } catch (e) { }
+
+                                if (this.checkPoseMatch(pose, challenge)) {
+                                    detectedCount++;
+                                    if (detectedCount >= requiredDetections) {
+                                        clearTimeout(timeoutId);
+                                        resolve(true);
+                                        return;
+                                    }
+                                } else {
+                                    detectedCount = Math.max(0, detectedCount - 1);
+                                }
+                            }
+                        } catch (error) {
+                            console.log('Pose detection frame error:', error.message);
+                        }
+
+                        setTimeout(checkPose, 120);
+                    };
+
+                    checkPose();
+                });
+            }
+
+            calculateHeadPose(landmarks) {
+                if (landmarks.length < 68) return { yaw: 0, pitch: 0 };
+
+                const nose = landmarks[30];
+                const leftEye = landmarks[36];
+                const rightEye = landmarks[45];
+                const leftMouth = landmarks[48];
+                const rightMouth = landmarks[54];
+
+                // Yaw (left/right rotation)
+                const eyeCenter = {
+                    x: (leftEye.x + rightEye.x) / 2,
+                    y: (leftEye.y + rightEye.y) / 2
+                };
+                const noseToEyeX = nose.x - eyeCenter.x;
+                const eyeDist = Math.max(1, Math.abs(rightEye.x - leftEye.x));
+                const yaw = Math.atan2(noseToEyeX, eyeDist) * (180 / Math.PI);
+                const yawRatio = noseToEyeX / eyeDist; // normalized - easier thresholding
+
+                // Pitch (up/down rotation)
+                const mouthCenter = {
+                    x: (leftMouth.x + rightMouth.x) / 2,
+                    y: (leftMouth.y + rightMouth.y) / 2
+                };
+                // Use nose position relative to eye center for pitch metric.
+                // In image coords, smaller y = up, larger y = down.
+                const noseToEyeY = nose.y - eyeCenter.y; // positive when nose is lower relative to eyes (looking down)
+                const verticalDenom = eyeDist; // normalize vertical by eye distance for scale invariance
+                const pitch = Math.atan2(eyeCenter.y - nose.y, verticalDenom) * (180 / Math.PI);
+                const pitchRatio = (eyeCenter.y - nose.y) / verticalDenom; // positive when looking up
+                const noseYOffsetRatio = noseToEyeY / verticalDenom; // positive when looking down
+
+                return { yaw, pitch, yawRatio, pitchRatio, noseYOffsetRatio };
+            }
+
+            checkPoseMatch(pose, challenge) {
+                const threshold = 6; // Degrees threshold for delta from neutral (lowered for sensitivity)
+                const ratioThreshold = 0.05; // normalized threshold (lowered)
+
+                const neutral = this.neutralPose || { yaw: 0, pitch: 0, yawRatio: 0, pitchRatio: 0, noseYOffsetRatio: 0 };
+                const deltaYaw = pose.yaw - neutral.yaw;
+                const deltaPitch = pose.pitch - neutral.pitch;
+                const deltaYawRatio = (pose.yawRatio || 0) - (neutral.yawRatio || 0);
+                const deltaPitchRatio = (pose.pitchRatio || 0) - (neutral.pitchRatio || 0);
+                const deltaNoseYOffset = (pose.noseYOffsetRatio || 0) - (neutral.noseYOffsetRatio || 0);
+
+                switch (challenge) {
+                    case 'left':
+                        if (deltaYaw < -threshold || deltaYawRatio < -ratioThreshold) return true;
+                        console.debug('[checkPoseMatch] left failed', { pose, neutral, deltaYaw, deltaYawRatio });
+                        return false;
+                    case 'right':
+                        if (deltaYaw > threshold || deltaYawRatio > ratioThreshold) return true;
+                        console.debug('[checkPoseMatch] right failed', { pose, neutral, deltaYaw, deltaYawRatio });
+                        return false;
+                    case 'up':
+                        // Accept significant vertical change (either direction) to be tolerant across devices
+                        if (Math.abs(deltaPitch) > threshold || Math.abs(deltaPitchRatio) > ratioThreshold || Math.abs(deltaNoseYOffset) > ratioThreshold) return true;
+                        console.debug('[checkPoseMatch] up failed', { pose, neutral, deltaPitch, deltaPitchRatio, deltaNoseYOffset });
+                        return false;
+                    case 'down':
+                        // Accept significant vertical change (either direction)
+                        if (Math.abs(deltaPitch) > threshold || Math.abs(deltaPitchRatio) > ratioThreshold || Math.abs(deltaNoseYOffset) > ratioThreshold) return true;
+                        console.debug('[checkPoseMatch] down failed', { pose, neutral, deltaPitch, deltaPitchRatio, deltaNoseYOffset });
+                        return false;
+                    default:
+                        return false;
+                }
+            }
+
+            async startContinuousFaceMatching() {
+                const canvas = document.getElementById('liveCanvas');
+                const ctx = canvas.getContext('2d');
+                const video = this.video;
+
+                // Set canvas size
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+
+                let lastMatchTime = 0;
+                const matchInterval = 500; // Update matches every 500ms
+
+                const processFrame = async () => {
+                    if (!this.isRunning) return;
+
+                    try {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        const now = Date.now();
+                        if (now - lastMatchTime >= matchInterval) {
+                            lastMatchTime = now;
+
+                            const detections = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions())
+                                .withFaceLandmarks()
+                                .withFaceDescriptors();
+
+                            if (detections.length === 0) {
+                                document.getElementById('liveMatchResultsContent').innerHTML = `
+                                    <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-gray-200">
+                                        <div class="text-5xl mb-3">📸</div>
+                                        <p class="text-gray-700 font-bold">No face detected</p>
+                                        <p class="text-sm text-gray-500 mt-2">Position your face in the camera</p>
+                                    </div>
+                                `;
+                            } else {
+                                await this.performLiveMatching(detections[0]);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Frame error:', error);
+                    }
+
+                    if (this.isRunning) {
+                        requestAnimationFrame(processFrame);
+                    }
+                };
+
+                processFrame();
+            }
+
+            async performLiveMatching(faceDetection) {
+                try {
+                    const persons = await state.db.getAllPersons();
+
+                    if (persons.length === 0) {
+                        document.getElementById('liveMatchResultsContent').innerHTML = `
+                            <div class="text-center py-8 bg-yellow-50 rounded-xl border-2 border-yellow-200">
+                                <div class="text-5xl mb-3">📋</div>
+                                <p class="text-yellow-800 font-bold">No registered persons</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const results = [];
+                    for (const person of persons) {
+                        const faces = await state.db.getFacesByPerson(person.id);
+                        if (faces.length === 0) continue;
+
+                        let bestMatch = { matchPercentage: 0 };
+                        
+                        for (const face of faces) {
+                            const storedDescriptor = new faceapi.LabeledFaceDescriptors(person.id, [new Float32Array(face.descriptor)]);
+                            const faceMatcher = new faceapi.FaceMatcher(storedDescriptor);
+                            const match = faceMatcher.findBestMatch(faceDetection.descriptor);
+                            const matchPercentage = Math.max(0, Math.min(100, Math.round((1 - match.distance) * 100)));
+
+                            if (matchPercentage > bestMatch.matchPercentage) {
+                                bestMatch = { matchPercentage };
+                            }
+                        }
+
+                        results.push({ personName: person.name, personId: person.id, matchPercentage: bestMatch.matchPercentage });
+                    }
+
+                    results.sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+                    if (results.length === 0) return;
+
+                    const top = results[0];
+                    const matchIcon = top.matchPercentage > 70 ? '✅' : top.matchPercentage > 40 ? '⚠️' : '❓';
+                    const matchText = top.matchPercentage > 70 ? 'Identified' : top.matchPercentage > 40 ? 'Possible Match' : 'Low Confidence';
+                    const bgColor = top.matchPercentage > 70 ? 'bg-green-50 border-green-300' : top.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-gray-50 border-gray-300';
+                    const textColor = top.matchPercentage > 70 ? 'text-green-800' : top.matchPercentage > 40 ? 'text-yellow-800' : 'text-gray-700';
+
+                    let html = `
+                        <div class="mb-4 p-4 rounded-xl border-2 ${bgColor}">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl">${matchIcon}</span>
+                                <div>
+                                    <p class="font-bold text-lg ${textColor}">${matchText}</p>
+                                    <p class="text-2xl font-bold" style="color:#000">${top.personName}</p>
+                                    <p class="text-lg font-bold" style="color:#000">${top.matchPercentage}%</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-bar-container mb-4">
+                            <div class="progress-bar-fill ${top.matchPercentage > 70 ? 'bg-gradient-to-r from-green-500 to-green-600' : top.matchPercentage > 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-gray-400 to-gray-500'}" style="width: ${top.matchPercentage}%"></div>
+                        </div>
+                        <div class="text-xs mb-3" style="color:#9aaea0">All matches:</div>
+                        <div class="space-y-2">
+                    `;
+
+                    results.slice(0, 5).forEach(r => {
+                        // Use light background and black text to match Liveness Check style
+                        html += `<div class="p-3 rounded-lg" style="background:#f7fafc; color:#000; border: 1px solid rgba(0,0,0,0.06)"><div class="flex justify-between items-center"><p class="font-semibold" style="color:#000">${r.personName}</p><span class="font-bold" style="color:#000">${r.matchPercentage}%</span></div></div>`;
+                    });
+
+                    html += `</div>`;
+                    document.getElementById('liveMatchResultsContent').innerHTML = html;
+
+                } catch (error) {
+                    console.error('Matching error:', error);
+                }
+            }
+
+            async startLivenessCheck() {
+                this.isRunning = true;
+                this.livenessChecks = { left: false, right: false, top: false };
+                this.capturedFrames = { left: null, right: null, top: null };
+                
+                document.getElementById('livenessContainer').classList.remove('hidden');
+                document.getElementById('liveMatchResults').classList.add('hidden');
+                
+                const challenges = ['left', 'right', 'top'];
+                const instructions = {
+                    left: '⬅️ Turn your face LEFT and hold for 2 seconds',
+                    right: '➡️ Turn your face RIGHT and hold for 2 seconds',
+                    top: '⬆️ Look UP and hold for 2 seconds'
+                };
+
+                for (const challenge of challenges) {
+                    if (!this.isRunning) break;
+                    
+                    this.currentChallenge = challenge;
+                    showNotification(instructions[challenge], 'info');
+                    
+                    // Wait for user to perform the action
+                    await this.detectPoseChallenge(challenge);
+                    
+                    // Update progress
+                    this.updateLivenessUI();
+                }
+
+                if (this.isRunning && this.livenessChecks.left && this.livenessChecks.right && this.livenessChecks.top) {
+                    showNotification('✅ Liveness check passed! Analyzing faces...', 'success');
+                    return true;
+                }
+                return false;
+            }
+
+            async detectPoseChallenge(challenge) {
+                return new Promise((resolve) => {
+                    let detectedFrames = 0;
+                    const requiredFrames = 5; // Detect pose for ~5 frames
+                    
+                    const checkPose = async () => {
+                        if (!this.isRunning || this.livenessChecks[challenge]) {
+                            resolve();
+                            return;
+                        }
+
+                        try {
+                            // Draw video to canvas
+                            const ctx = this.canvas.getContext('2d');
+                            ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+
+                            // Detect faces with landmarks
+                            const detections = await faceapi.detectSingleFace(this.canvas, new faceapi.TinyFaceDetectorOptions())
+                                .withFaceLandmarks()
+                                .withFaceDescriptor();
+
+                            if (detections && detections.landmarks) {
+                                const landmarks = detections.landmarks.positions;
+                                
+                                // Calculate head pose based on landmarks
+                                const pose = this.calculateHeadPose(landmarks);
+                                const isCorrectPose = this.checkPose(pose, challenge);
+
+                                if (isCorrectPose) {
+                                    detectedFrames++;
+                                    if (detectedFrames >= requiredFrames) {
+                                        this.livenessChecks[challenge] = true;
+                                        this.capturedFrames[challenge] = this.canvas.toDataURL();
+                                        resolve();
+                                        return;
+                                    }
+                                } else {
+                                    detectedFrames = 0;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Pose detection error:', error);
+                        }
+
+                        setTimeout(checkPose, 100);
+                    };
+
+                    checkPose();
+                });
+            }
+
+            calculateHeadPose(landmarks) {
+                if (landmarks.length < 68) return { yaw: 0, pitch: 0, roll: 0 };
+
+                // Key landmark indices for head pose estimation
+                const nose = landmarks[30];
+                const leftEye = landmarks[36];
+                const rightEye = landmarks[45];
+                const leftMouth = landmarks[48];
+                const rightMouth = landmarks[54];
+
+                // Calculate horizontal position (yaw) - left/right
+                const eyeCenter = {
+                    x: (leftEye.x + rightEye.x) / 2,
+                    y: (leftEye.y + rightEye.y) / 2
+                };
+                const noseToEyeX = nose.x - eyeCenter.x;
+                const yaw = Math.atan2(noseToEyeX, Math.abs(rightEye.x - leftEye.x));
+
+                // Calculate vertical position (pitch) - up/down
+                const mouthCenter = {
+                    x: (leftMouth.x + rightMouth.x) / 2,
+                    y: (leftMouth.y + rightMouth.y) / 2
+                };
+                const noseToMouthY = nose.y - mouthCenter.y;
+                const pitch = Math.atan2(noseToMouthY, Math.abs(nose.y - eyeCenter.y));
+
+                return {
+                    yaw: yaw * 180 / Math.PI,
+                    pitch: pitch * 180 / Math.PI,
+                    roll: 0
+                };
+            }
+
+            checkPose(pose, challenge) {
+                // Thresholds for pose detection
+                const yawThreshold = 25;
+                const pitchThreshold = 20;
+
+                switch (challenge) {
+                    case 'left':
+                        return pose.yaw < -yawThreshold;
+                    case 'right':
+                        return pose.yaw > yawThreshold;
+                    case 'top':
+                        return pose.pitch < -pitchThreshold;
+                    default:
+                        return false;
+                }
+            }
+
+            updateLivenessUI() {
+                const checks = [
+                    { id: 'checkLeft', key: 'left', emoji: '✅' },
+                    { id: 'checkRight', key: 'right', emoji: '✅' },
+                    { id: 'checkTop', key: 'top', emoji: '✅' }
+                ];
+
+                checks.forEach(({ id, key, emoji }) => {
+                    const element = document.getElementById(id);
+                    const statusSpan = element.querySelector('span:last-child');
+                    if (this.livenessChecks[key]) {
+                        element.classList.add('bg-green-50');
+                        statusSpan.textContent = emoji;
+                    }
+                });
+
+                const completed = Object.values(this.livenessChecks).filter(v => v).length;
+                const percentage = (completed / 3) * 100;
+                document.getElementById('livenessProgressBar').style.width = percentage + '%';
+            }
+
+            async performLiveFaceMatching() {
+                try {
+                    // Capture current frame for matching
+                    const ctx = this.canvas.getContext('2d');
+                    ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+
+                    const detections = await faceapi.detectAllFaces(this.canvas, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
+
+                    if (detections.length === 0) {
+                        showNotification('⚠️ No face detected in camera feed', 'error');
+                        return;
+                    }
+
+                    // Get all persons and their faces
+                    const persons = await state.db.getAllPersons();
+                    if (persons.length === 0) {
+                        showNotification('⚠️ No registered persons in database', 'warning');
+                        return;
+                    }
+
+                    // Perform matching
+                    const results = [];
+                    for (const person of persons) {
+                        const faces = await state.db.getFacesByPerson(person.id);
+                        if (faces.length === 0) continue;
+
+                        for (const face of faces) {
+                            const storedDescriptor = new faceapi.LabeledFaceDescriptors(
+                                person.id,
+                                [new Float32Array(face.descriptor)]
+                            );
+
+                            const faceMatcher = new faceapi.FaceMatcher(storedDescriptor);
+                            const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
+
+                            results.push({
+                                personName: person.name,
+                                personId: person.id,
+                                distance: bestMatch.distance,
+                                matchPercentage: Math.max(0, Math.min(100, Math.round((1 - bestMatch.distance) * 100)))
+                            });
+                        }
+                    }
+
+                    // Get best matches
+                    const uniqueMatches = {};
+                    results.forEach(r => {
+                        if (!uniqueMatches[r.personId] || r.matchPercentage > uniqueMatches[r.personId].matchPercentage) {
+                            uniqueMatches[r.personId] = r;
+                        }
+                    });
+
+                    const finalResults = Object.values(uniqueMatches).sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+                    if (finalResults.length === 0) {
+                        document.getElementById('liveMatchResultsContent').innerHTML = `
+                            <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-gray-200">
+                                <div class="text-5xl mb-3">🔍</div>
+                                <p class="text-gray-700 font-bold">No matches found</p>
+                            </div>
+                        `;
+                    } else {
+                        const top = finalResults[0];
+                        const matchIcon = top.matchPercentage > 70 ? '✅' : top.matchPercentage > 40 ? '⚠️' : '❌';
+                        const matchText = top.matchPercentage > 70 ? 'Identified' : top.matchPercentage > 40 ? 'Possible Match' : 'No Match';
+                        const bgColor = top.matchPercentage > 70 ? 'bg-green-50 border-green-300' : top.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-red-50 border-red-300';
+                        const textColor = top.matchPercentage > 70 ? 'text-green-800' : top.matchPercentage > 40 ? 'text-yellow-800' : 'text-red-800';
+
+                        let html = `
+                            <div class="mb-4 p-4 rounded-xl border-2 ${bgColor}">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-3xl">${matchIcon}</span>
+                                    <div>
+                                        <p class="font-bold text-lg ${textColor}">${matchText}</p>
+                                        <p class="text-xl font-bold text-gray-900">${top.personName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                        `;
+
+                        finalResults.slice(0, 5).forEach(r => {
+                            const bgClass = r.matchPercentage > 70 ? 'bg-green-50 border-green-200' : r.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200';
+                            const textClass = r.matchPercentage > 70 ? 'text-green-600' : r.matchPercentage > 40 ? 'text-yellow-600' : 'text-gray-600';
+                            
+                            html += `
+                                <div class="p-4 rounded-xl border-2 ${bgClass}">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h4 class="font-bold text-lg text-gray-900">${r.personName}</h4>
+                                        <span class="text-2xl font-bold ${textClass}">${r.matchPercentage}%</span>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-fill" style="width: ${r.matchPercentage}%" class="${r.matchPercentage > 70 ? 'bg-gradient-to-r from-green-500 to-green-600' : r.matchPercentage > 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-gray-400 to-gray-500'}"></div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        html += `</div>`;
+                        document.getElementById('liveMatchResultsContent').innerHTML = html;
+                    }
+
+                    document.getElementById('liveMatchResults').classList.remove('hidden');
+                    document.getElementById('livenessContainer').classList.add('hidden');
+
+                } catch (error) {
+                    showNotification('❌ Matching error: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Initialize live camera tester
+        const liveCameraTester = new LiveCameraTester();
+
+        // Start Live Capture for a specific person
+        async function startLiveCaptureForPerson(personId) {
+            const person = await state.db.getPerson(personId);
+            if (!person) {
+                showNotification('⚠️ Person not found', 'error');
+                return;
+            }
+
+            if (!state.modelsLoaded) {
+                showNotification('⚠️ Face recognition models not loaded', 'error');
+                return;
+            }
+
+            // Store person ID in tester
+            liveCameraTester.targetPersonId = personId;
+            liveCameraTester.capturedImages = [];
+
+            const liveTestModal = document.getElementById('liveTestModal');
+            liveTestModal.style.display = 'block';
+
+            // Update modal title
+            const modalTitle = liveTestModal.querySelector('h2');
+            modalTitle.textContent = `📹 Live Capture for ${person.name}`;
+
+            // Initialize camera
+            let cameraReady = await liveCameraTester.init();
+            
+            if (!cameraReady) {
+                showNotification('📸 Camera unavailable. Use "Add Images" to upload photos instead.', 'warning');
+                document.getElementById('cameraContainer').innerHTML = `
+                    <div class="bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl p-8 text-center">
+                        <div class="text-6xl mb-4">📷</div>
+                        <p class="text-gray-800 font-bold text-lg mb-2">Camera Access Blocked</p>
+                        <p class="text-gray-600 text-sm mb-6">Try Firefox or restart your browser.</p>
+                    </div>
+                `;
+                document.getElementById('startLiveTestBtn').disabled = true;
+                document.getElementById('startLiveTestBtn').style.opacity = '0.5';
+                return;
+            }
+
+            setupCameraUI();
+        }
+
+        // Initialize live camera tester
+        // const liveCameraTester = new LiveCameraTester();
+
+        // Live Test Button Event (guarded - element may not exist in some UI variants)
+        const _liveTestBtn = document.getElementById('liveTestBtn');
+        if (_liveTestBtn) {
+            _liveTestBtn.addEventListener('click', async () => {
+                if (!state.modelsLoaded) {
+                    showNotification('⚠️ Face recognition models not loaded', 'error');
+                    return;
+                }
+
+                const liveTestModal = document.getElementById('liveTestModal');
+                liveTestModal.style.display = 'block';
+
+                // Try camera, but provide image upload fallback
+                let cameraReady = await liveCameraTester.init();
+                
+                if (!cameraReady) {
+                    showNotification('📸 Camera unavailable. Use "📤 Test with Image" to upload photos instead.', 'warning');
+                    const cameraContainerEl = document.getElementById('cameraContainer');
+                    if (cameraContainerEl) {
+                        cameraContainerEl.innerHTML = `
+                            <div class="bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl p-8 text-center">
+                                <div class="text-6xl mb-4">📷</div>
+                                <p class="text-gray-800 font-bold text-lg mb-2">Camera Access Blocked</p>
+                                <p class="text-gray-600 text-sm mb-6">Your system won't let us access the camera right now.</p>
+                                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded text-left">
+                                    <p class="text-sm text-blue-900 font-semibold mb-2">Try these solutions:</p>
+                                    <ul class="text-xs text-blue-800 space-y-1">
+                                        <li>✓ Close Chrome completely and restart it</li>
+                                        <li>✓ Close Zoom, Skype, Teams, or any app using your camera</li>
+                                        <li>✓ Restart your computer</li>
+                                        <li>✓ <strong>Try Firefox browser instead</strong> (often works better)</li>
+                                    </ul>
+                                </div>
+                                <p class="text-blue-600 font-semibold text-sm">📤 Or use the "Test with Image" button to test with photos</p>
+                            </div>
+                        `;
+                    }
+                    const startBtn = document.getElementById('startLiveTestBtn');
+                    if (startBtn) {
+                        startBtn.disabled = true;
+                        startBtn.style.opacity = '0.5';
+                    }
+                    const uploadBtn = document.getElementById('uploadImageForLiveTestBtn');
+                    if (uploadBtn) uploadBtn.focus();
+                    return;
+                }
+
+                setupCameraUI();
+            });
+        }
+
+        function setupCameraUI() {
+            const video = document.getElementById('liveVideo');
+            const canvas = document.getElementById('liveCanvas');
+            
+            // Setup canvas dimensions
+            setTimeout(() => {
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+            }, 1000);
+
+            // Setup button listeners
+            document.getElementById('startLiveTestBtn').onclick = async () => {
+                document.getElementById('startLiveTestBtn').classList.add('hidden');
+                document.getElementById('stopLiveTestBtn').classList.remove('hidden');
+                document.getElementById('livenessContainer').classList.remove('hidden');
+                document.getElementById('liveMatchResults').classList.add('hidden');
+                
+                // Start liveness checks
+                liveCameraTester.isRunning = true;
+                const livenessPass = await liveCameraTester.startLivenessChecks();
+                
+                if (livenessPass) {
+                    showNotification('✅ Liveness verified! Analyzing face match...', 'success');
+                    document.getElementById('livenessContainer').classList.add('hidden');
+                    document.getElementById('liveMatchResults').classList.remove('hidden');
+                    await liveCameraTester.startContinuousFaceMatching();
+                } else {
+                    showNotification('⚠️ Liveness check failed', 'warning');
+                }
+
+                document.getElementById('startLiveTestBtn').classList.remove('hidden');
+                document.getElementById('stopLiveTestBtn').classList.add('hidden');
+            };
+
+            document.getElementById('stopLiveTestBtn').onclick = () => {
+                liveCameraTester.isRunning = false;
+                document.getElementById('startLiveTestBtn').classList.remove('hidden');
+                document.getElementById('stopLiveTestBtn').classList.add('hidden');
+                showNotification('⏹️ Test stopped', 'info');
+            };
+
+            document.getElementById('uploadImageForLiveTestBtn').onclick = () => {
+                document.getElementById('liveTestImageUpload').click();
+            };
+
+            // PDF uploads are handled through the main Browse/Drop area (matchImageUpload)
+
+            document.getElementById('liveTestImageUpload').onchange = (e) => {
+                if (e.target.files.length) {
+                    handleLiveTestImageUpload(e.target.files[0]);
+                    e.target.value = '';
+                }
+            };
+
+            document.getElementById('closeLiveTestBtn').onclick = () => {
+                liveCameraTester.stop();
+                document.getElementById('liveTestModal').style.display = 'none';
+            };
+        }
+
+        // Handle image upload for testing when camera unavailable
+        async function handleLiveTestImageUpload(file) {
+            if (!state.modelsLoaded) {
+                showNotification('⚠️ Models not loaded', 'error');
+                return;
+            }
+
+            showNotification('📸 Skipping liveness check (using static image)', 'info');
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                
+                img.onload = async () => {
+                    document.getElementById('livenessContainer').classList.add('hidden');
+                    document.getElementById('liveMatchResults').classList.remove('hidden');
+                    
+                    // Draw to canvas for detection
+                    const canvas = document.getElementById('liveCanvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    // Perform matching on uploaded image
+                    try {
+                        const detections = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions())
+                            .withFaceLandmarks()
+                            .withFaceDescriptors();
+
+                        if (detections.length === 0) {
+                            document.getElementById('liveMatchResultsContent').innerHTML = `
+                                <div class="text-center py-8 bg-red-50 rounded-xl border-2 border-red-200">
+                                    <div class="text-5xl mb-3">⚠️</div>
+                                    <p class="text-red-700 font-bold">No face detected in image</p>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        // Match faces
+                        const persons = await state.db.getAllPersons();
+                        if (persons.length === 0) {
+                            showNotification('⚠️ No registered persons', 'warning');
+                            return;
+                        }
+
+                        const results = [];
+                        for (const person of persons) {
+                            const faces = await state.db.getFacesByPerson(person.id);
+                            if (faces.length === 0) continue;
+
+                            for (const face of faces) {
+                                const storedDescriptor = new faceapi.LabeledFaceDescriptors(
+                                    person.id,
+                                    [new Float32Array(face.descriptor)]
+                                );
+
+                                const faceMatcher = new faceapi.FaceMatcher(storedDescriptor);
+                                const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
+
+                                results.push({
+                                    personName: person.name,
+                                    personId: person.id,
+                                    distance: bestMatch.distance,
+                                    matchPercentage: Math.max(0, Math.min(100, Math.round((1 - bestMatch.distance) * 100)))
+                                });
+                            }
+                        }
+
+                        const uniqueMatches = {};
+                        results.forEach(r => {
+                            if (!uniqueMatches[r.personId] || r.matchPercentage > uniqueMatches[r.personId].matchPercentage) {
+                                uniqueMatches[r.personId] = r;
+                            }
+                        });
+
+                        const finalResults = Object.values(uniqueMatches).sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+                        if (finalResults.length === 0) {
+                            document.getElementById('liveMatchResultsContent').innerHTML = `
+                                <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-gray-200">
+                                    <div class="text-5xl mb-3">🔍</div>
+                                    <p class="text-gray-700 font-bold">No matches found</p>
+                                </div>
+                            `;
+                        } else {
+                            const top = finalResults[0];
+                            const matchIcon = top.matchPercentage > 70 ? '✅' : top.matchPercentage > 40 ? '⚠️' : '❌';
+                            const matchText = top.matchPercentage > 70 ? 'Identified' : top.matchPercentage > 40 ? 'Possible Match' : 'No Match';
+                            const bgColor = top.matchPercentage > 70 ? 'bg-green-50 border-green-300' : top.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-red-50 border-red-300';
+                            const textColor = top.matchPercentage > 70 ? 'text-green-800' : top.matchPercentage > 40 ? 'text-yellow-800' : 'text-red-800';
+
+                            let html = `
+                                <div class="mb-4 p-4 rounded-xl border-2 ${bgColor}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-3xl">${matchIcon}</span>
+                                        <div>
+                                            <p class="font-bold text-lg ${textColor}">${matchText}</p>
+                                            <p class="text-xl font-bold text-gray-900">${top.personName}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                            `;
+
+                            finalResults.slice(0, 5).forEach(r => {
+                                const bgClass = r.matchPercentage > 70 ? 'bg-green-50 border-green-200' : r.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200';
+                                const textClass = r.matchPercentage > 70 ? 'text-green-600' : r.matchPercentage > 40 ? 'text-yellow-600' : 'text-gray-600';
+                                
+                                html += `
+                                    <div class="p-4 rounded-xl border-2 ${bgClass}">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <h4 class="font-bold text-lg text-gray-900">${r.personName}</h4>
+                                            <span class="text-2xl font-bold ${textClass}">${r.matchPercentage}%</span>
+                                        </div>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-fill" style="width: ${r.matchPercentage}%" class="${r.matchPercentage > 70 ? 'bg-gradient-to-r from-green-500 to-green-600' : r.matchPercentage > 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-gray-400 to-gray-500'}"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+
+                            html += `</div>`;
+                            document.getElementById('liveMatchResultsContent').innerHTML = html;
+                            showNotification(`✅ ${top.personName} - ${top.matchPercentage}% match`, 'success');
+                        }
+                    } catch (error) {
+                        showNotification('❌ Error: ' + error.message, 'error');
+                    }
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+            // Handle PDF upload: render first page and run face-api detection/matching
+            async function handlePdfUpload(file) {
+                if (!state.modelsLoaded) {
+                    showNotification('⚠️ Models not loaded', 'error');
+                    return;
+                }
+
+                showNotification('📄 Processing PDF (rendering first page)...', 'info');
+
+                try {
+                    // Initialize PDF.js worker (if available)
+                    if (window.pdfjsLib) {
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                    } else {
+                        showNotification('⚠️ PDF.js not available', 'error');
+                        return;
+                    }
+
+                    const url = URL.createObjectURL(file);
+                    const loadingTask = pdfjsLib.getDocument(url);
+                    const pdf = await loadingTask.promise;
+                    const page = await pdf.getPage(1);
+
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+
+                    // Show preview
+                    const preview = document.getElementById('pdfPreview');
+                    preview.innerHTML = '';
+                    canvas.className = 'rounded-lg shadow-md max-w-full';
+                    preview.appendChild(canvas);
+
+                    showNotification('🔎 Detecting faces on PDF page...', 'info');
+
+                    // Run face-api detection on rendered canvas
+                    const detections = await faceapi.detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
+
+                    if (!detections || detections.length === 0) {
+                        showNotification('⚠️ No faces detected on PDF page', 'warning');
+                        return;
+                    }
+
+                    // Draw boxes on preview for visual feedback
+                    // Remove any previous overlay to avoid stray boxes
+                    preview.style.position = 'relative';
+                    const oldOverlay = preview.querySelector('canvas.pdf-overlay');
+                    if (oldOverlay) oldOverlay.remove();
+
+                    const overlay = document.createElement('canvas');
+                    overlay.className = 'pdf-overlay';
+                    // size overlay to match the rendered canvas and position it at 0,0 inside the preview
+                    overlay.width = canvas.width;
+                    overlay.height = canvas.height;
+                    overlay.style.position = 'absolute';
+                    overlay.style.left = '0px';
+                    overlay.style.top = '0px';
+                    overlay.style.width = canvas.width + 'px';
+                    overlay.style.height = canvas.height + 'px';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.style.zIndex = 8;
+                    preview.appendChild(overlay);
+                    const octx = overlay.getContext('2d');
+                    octx.strokeStyle = '#10b981';
+                    octx.lineWidth = Math.max(2, canvas.width / 300);
+
+                    detections.forEach(d => {
+                        const { x, y, width, height } = d.detection.box;
+                        octx.strokeRect(x, y, width, height);
+                    });
+
+                    // Perform matching using the first face detected (or present all matches)
+                    const persons = await state.db.getAllPersons();
+                    if (persons.length === 0) {
+                        showNotification('⚠️ No registered persons', 'warning');
+                        return;
+                    }
+
+                    const results = [];
+                    for (const person of persons) {
+                        const faces = await state.db.getFacesByPerson(person.id);
+                        if (faces.length === 0) continue;
+
+                        for (const face of faces) {
+                            const storedDescriptor = new faceapi.LabeledFaceDescriptors(person.id, [new Float32Array(face.descriptor)]);
+                            const faceMatcher = new faceapi.FaceMatcher(storedDescriptor);
+
+                            // Compare each detected face
+                            for (const det of detections) {
+                                const best = faceMatcher.findBestMatch(det.descriptor);
+                                results.push({ personName: person.name, personId: person.id, distance: best.distance, matchPercentage: Math.max(0, Math.min(100, Math.round((1 - best.distance) * 100))) });
+                            }
+                        }
+                    }
+
+                    const unique = {};
+                    results.forEach(r => {
+                        if (!unique[r.personId] || r.matchPercentage > unique[r.personId].matchPercentage) unique[r.personId] = r;
+                    });
+
+                    const finalResults = Object.values(unique).sort((a, b) => b.matchPercentage - a.matchPercentage);
+                    const content = document.getElementById('matchResults');
+                    const container = document.getElementById('matchResults');
+
+                    if (finalResults.length === 0) {
+                        document.getElementById('matchResults').innerHTML = `
+                            <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-gray-200">
+                                <div class="text-5xl mb-3">🔍</div>
+                                <p class="text-gray-700 font-bold">No matches found</p>
+                            </div>
+                        `;
+                    } else {
+                        const top = finalResults[0];
+                        const matchIcon = top.matchPercentage > 70 ? '✅' : top.matchPercentage > 40 ? '⚠️' : '❌';
+                        const matchText = top.matchPercentage > 70 ? 'Identified' : top.matchPercentage > 40 ? 'Possible Match' : 'No Match';
+                        const bgColor = top.matchPercentage > 70 ? 'bg-green-50 border-green-300' : top.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-red-50 border-red-300';
+                        const textColor = top.matchPercentage > 70 ? 'text-green-800' : top.matchPercentage > 40 ? 'text-yellow-800' : 'text-red-800';
+
+                        let html = `
+                            <div class="mb-4 p-4 rounded-xl border-2 ${bgColor}">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-3xl">${matchIcon}</span>
+                                    <div>
+                                        <p class="font-bold text-lg ${textColor}">${matchText}</p>
+                                        <p class="text-xl font-bold text-gray-900">${top.personName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                        `;
+
+                        finalResults.slice(0,5).forEach(r => {
+                            const bgClass = r.matchPercentage > 70 ? 'bg-green-50 border-green-200' : r.matchPercentage > 40 ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200';
+                            const textClass = r.matchPercentage > 70 ? 'text-green-600' : r.matchPercentage > 40 ? 'text-yellow-600' : 'text-gray-600';
+                            html += `
+                                <div class="p-4 rounded-xl border-2 ${bgClass}">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h4 class="font-bold text-lg text-gray-900">${r.personName}</h4>
+                                        <span class="text-2xl font-bold ${textClass}">${r.matchPercentage}%</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        html += `</div>`;
+                        document.getElementById('matchResults').innerHTML = html;
+                        showNotification(`✅ ${finalResults[0].personName} - ${finalResults[0].matchPercentage}% match`, 'success');
+                    }
+
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error('PDF processing error:', error);
+                    showNotification('❌ Error processing PDF: ' + error.message, 'error');
+                }
+            }
+    </script>
+</body>
+</html>
