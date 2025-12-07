@@ -5,6 +5,7 @@ import { Button } from "./ui/button"
 import { Menu, X } from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { ViperStatus } from "./viper-status"
 
 export function ViperHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -68,6 +69,9 @@ export function ViperHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
+          <div className="mr-4">
+            <ViperStatus />
+          </div>
           <Button variant="ghost" size="sm" className="text-foreground hover:text-accent" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
