@@ -1,6 +1,6 @@
 # ViperQB: A Modular Enterprise Blockchain Platform
 
-![ViperQB Logo](https://raw.githubusercontent.com/ViperQB/VIPER/main/docs/images/logo.png)
+![ViperQB Logo](./Front-End/public/logo.svg)
 
 **A comprehensive, enterprise-grade blockchain platform built on Qubic blockchain with modular microservices architecture, real-time audit trails, and advanced security features.**
 
@@ -37,7 +37,56 @@ The platform operates on an intelligent loop: **Perceive → Decide → Act**, e
 
 ### System Architecture Overview
 
-![Architecture Diagram](https://raw.githubusercontent.com/ViperQB/VIPER/main/docs/images/architecture.jpg)
+```
+                           SOC Team Monitoring Dashboard
+                    KPIs | Stats | Verify TX on Qubic | Chart | Client
+                                        |
+                    ┌───────────────────┼───────────────────┐
+                    |                   |                   |
+            Audit Log Service      Core Service Bus     Plugins/Modules
+          (Forensic Logging)      (Message Bus)    ┌──────────────────┐
+                    |                   |           | Secure File      |
+                    |                   |           | Transfer         |
+    Your Business → API Gateway ←──────┼───────────┤ Secure Secrets   |
+  (Rate Limiter)      |                |           | Vault            |
+                      |                |           ├──────────────────┤
+                      |                |           | Workflow         |
+                      |                |           | Automation       |
+                      |                |           | Chatbot          |
+                      |                |           ├──────────────────┤
+                      |                |           | Access Control   |
+                      |                |           | Policy Engine    |
+                      |                |           | Hardware Module  |
+                      |                |           │ IoT Control      |
+                      |                |           ├──────────────────┤
+                      |                |           | Identity Verify  |
+                      v                v           | (KYC)            |
+                  ┌─────────────────────────────┐  └──────────────────┘
+                  │     Smart Contract          │
+                  │ ┌─────────────────────────┐ │
+                  │ │ Broadcast Events        │ │
+                  │ │ Allow/Deny Actions      │ │
+                  │ │ Verify Integrity        │ │
+                  │ │ AAA Framework           │ │
+                  │ │ Employment Mgmt         │ │
+                  │ │ ViperQB Token Logic     │ │
+                  │ └─────────────────────────┘ │
+                  └─────────────────────────────┘
+                            |
+                    ┌───────┴───────┐
+                    v               v
+          [Blockchain Events]  [Immutable Audit Log]
+                    |               |
+                    └───────┬───────┘
+                            v
+                   ╔════════════════════╗
+                   ║ QUBIC BLOCKCHAIN   ║
+                   ║                    ║
+                   ║ Decentralized      ║
+                   ║ Trustless          ║
+                   ║ Immutable          ║
+                   ╚════════════════════╝
+```
 
 ### Platform Components
 
@@ -703,7 +752,7 @@ We welcome contributions! Please follow these steps:
 
 Meet the amazing team behind ViperQB:
 
-![ViperQB Team](https://raw.githubusercontent.com/ViperQB/VIPER/main/docs/images/team.jpg)
+![ViperQB Team](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
 | Name | Role | Expertise |
 |------|------|-----------|
