@@ -1,6 +1,6 @@
 # ViperQB: A Modular Enterprise Blockchain Platform
 
-![ViperQB Logo](./Front-End/public/logo.svg)
+![ViperQB Logo](./Front-End/public/viperqb-logo.png)
 
 **A comprehensive, enterprise-grade blockchain platform built on Qubic blockchain with modular microservices architecture, real-time audit trails, and advanced security features.**
 
@@ -846,4 +846,5 @@ ViperQB is built for enterprise scale:
 **Last Updated:** December 7, 2025  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
+
 
