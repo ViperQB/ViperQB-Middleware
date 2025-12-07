@@ -1,6 +1,6 @@
 # ViperQB: A Modular Enterprise Blockchain Platform
 
-![ViperQB Logo](./Front-End/public/logo.svg)
+![ViperQB Logo](./Front-End/public/viperqb-logo.png)
 
 **A comprehensive, enterprise-grade blockchain platform built on Qubic blockchain with modular microservices architecture, real-time audit trails, and advanced security features.**
 
@@ -27,13 +27,13 @@ The platform operates on an intelligent loop: **Perceive → Decide → Act**, e
 ## 🏗️ Architecture
 
 ### SOC Team Monitoring Dashboard
-<img width="1200" height="500" alt="SOC Team Monitoring Dashboard" src="./docs/images/soc-team-monitoring.png">
+![SOC Team Monitoring Dashboard](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
 ### Inside ViperQB: A Modular Enterprise Blockchain Platform
-<img width="1200" height="700" alt="ViperQB Platform Architecture" src="./docs/images/viperqb-architecture.png">
+![ViperQB Platform Architecture](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
 ### Anatomy of the ViperQB Platform
-<img width="1200" height="700" alt="ViperQB Anatomy" src="./docs/images/viperqb-anatomy.png">
+![ViperQB Anatomy](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
 ### System Architecture Overview
 
@@ -46,23 +46,12 @@ The platform operates on an intelligent loop: **Perceive → Decide → Act**, e
             Audit Log Service      Core Service Bus     Plugins/Modules
           (Forensic Logging)      (Message Bus)    ┌──────────────────┐
                     |                   |           | Secure File      |
-
-                          ### SOC Team Monitoring Dashboard
-                          ![SOC Team Monitoring Dashboard](./Front-End/public/arch.jpg)
-
-                          ### Inside ViperQB: A Modular Enterprise Blockchain Platform
-                          ![ViperQB Platform Architecture](./Front-End/public/ViperQB_Arch.jpg)
-
-                          ### Anatomy of the ViperQB Platform
-                          ![ViperQB Anatomy](./Front-End/public/arch.jpg)
+                    |                   |           | Transfer         |
+    Your Business → API Gateway ←──────┼───────────┤ Secure Secrets   |
   (Rate Limiter)      |                |           | Vault            |
                       |                |           ├──────────────────┤
                       |                |           | Workflow         |
-                          ## 👥 Team
-
-                          Meet the amazing team behind ViperQB:
-
-                          ![ViperQB Team](./Front-End/public/Team.png)
+                      |                |           | Automation       |
                       |                |           | Chatbot          |
                       |                |           ├──────────────────┤
                       |                |           | Access Control   |
@@ -763,7 +752,7 @@ We welcome contributions! Please follow these steps:
 
 Meet the amazing team behind ViperQB:
 
-<img width="1200" height="600" alt="ViperQB Team" src="https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966">
+![ViperQB Team](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
 | Name | Role | Expertise |
 |------|------|-----------|
@@ -857,4 +846,6 @@ ViperQB is built for enterprise scale:
 **Last Updated:** December 7, 2025  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
+
+
 
