@@ -29,12 +29,17 @@ The platform operates on an intelligent loop: **Perceive → Decide → Act**, e
 ### SOC Team Monitoring Dashboard
 ![SOC Team Monitoring Dashboard](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
+![ViperQB Logo](./Front-End/public/ViperQB_Arch.jpg)
+
 ### Inside ViperQB: A Modular Enterprise Blockchain Platform
 ![ViperQB Platform Architecture](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
+
+![ViperQB Logo](./Front-End/public/archç.jpg)
 
 ### Anatomy of the ViperQB Platform
 ![ViperQB Anatomy](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
 
+![ViperQB Logo](./Front-End/public/arch.jpg)
 ### System Architecture Overview
 
 ```
@@ -850,6 +855,7 @@ ViperQB is built for enterprise scale:
 **Last Updated:** December 7, 2025  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
+
 
 
 
