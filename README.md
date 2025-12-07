@@ -1,6 +1,6 @@
 # ViperQB: A Modular Enterprise Blockchain Platform
 
-![ViperQB Logo](https://raw.githubusercontent.com/ViperQB/VIPER/main/docs/images/logo.png)
+<img width="1911" height="944" alt="ViperQB Logo" src="https://github.com/user-attachments/assets/0e093229-8f71-40da-bb5e-40030610c60d" />
 
 **A comprehensive, enterprise-grade blockchain platform built on Qubic blockchain with modular microservices architecture, real-time audit trails, and advanced security features.**
 
@@ -27,17 +27,17 @@ The platform operates on an intelligent loop: **Perceive → Decide → Act**, e
 ## 🏗️ Architecture
 
 ### SOC Team Monitoring Dashboard
-![SOC Team Monitoring Dashboard](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
+<img width="1911" height="944" alt="SOC Team Monitoring Dashboard" src="https://github.com/user-attachments/assets/0e093229-8f71-40da-bb5e-40030610c60d" />
 
 ### Inside ViperQB: A Modular Enterprise Blockchain Platform
-![ViperQB Platform Architecture](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
+<img width="1911" height="944" alt="ViperQB Platform Architecture" src="https://github.com/user-attachments/assets/0e093229-8f71-40da-bb5e-40030610c60d" />
 
 ### Anatomy of the ViperQB Platform
-![ViperQB Anatomy](https://camo.githubusercontent.com/27b09a90dd12e35fd70da0582bf732c54188901f8242e35d3ca993f30cbee171/68747470733a2f2f7777772e616e696d61746564696d616765732e6f72672f646174612f6d656469612f3536322f616e696d617465642d6c696e652d696d6167652d303138342e676966)
+<img width="1911" height="944" alt="ViperQB Anatomy" src="https://github.com/user-attachments/assets/0e093229-8f71-40da-bb5e-40030610c60d" />
 
 ### System Architecture Overview
 
-![Architecture Diagram](https://raw.githubusercontent.com/ViperQB/VIPER/main/docs/images/architecture.jpg)
+<img width="1911" height="944" alt="Architecture Diagram" src="https://github.com/user-attachments/assets/0e093229-8f71-40da-bb5e-40030610c60d" />
 
 ### Platform Components
 
@@ -703,7 +703,7 @@ We welcome contributions! Please follow these steps:
 
 Meet the amazing team behind ViperQB:
 
-![ViperQB Team](https://raw.githubusercontent.com/ViperQB/VIPER/main/docs/images/team.jpg)
+<img width="1911" height="944" alt="ViperQB Team" src="https://github.com/user-attachments/assets/0e093229-8f71-40da-bb5e-40030610c60d" />
 
 | Name | Role | Expertise |
 |------|------|-----------|
