@@ -764,12 +764,12 @@ Meet the amazing team behind ViperQB:
 
 | Name | Role | Expertise |
 |------|------|-----------|
-| **Oussama Hammach** (CheckM8) | Lead - Offensive Cybersecurity | Cybersecurity, Penetration Testing |
-| **Yassine Najb** (PODyokira) | Software Engineer | Full-Stack Development, Backend Architecture |
-| **Reda Adjar** (reda_adjar520) | IoT & Embedded Systems | IoT Integration, Hardware Module Development |
-| **Blossom Puff** (ANIQA) | Biomedical Engineer | KYC & Biometric Analysis, Medical Compliance |
-| **Asma Abdellaoui** (Shuqaie) | Computer Science Student | Frontend Development, UI/UX |
-| **arixstoo** (arixstoo401) | Developer | DevOps, Infrastructure, Deployment |
+| Oussama Hammach (CheckM8) | Lead - Offensive Cybersecurity | Full-Stack Development, BlockChain, Backend Architecture  |
+| Yassine Najb (PODyokira) | Software Engineer | Full-Stack Development, BlockChain, Backend Architecture |
+| Reda Adjar (reda_adjar520) | IoT & Embedded Systems | IoT Integration & Front End Development |
+| Blossom Puff (ANIQA) | Biomedical Engineer | Presentation |
+| Asma Abdellaoui (Shuqaie) | Computer Science Student | Frontend Development, UI/UX |
+| arixstoo (arixstoo401) | Developer |Frontend Development, UI/UX |
 
 ---
 
@@ -855,6 +855,7 @@ ViperQB is built for enterprise scale:
 **Last Updated:** December 7, 2025  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
+
 
 
 
