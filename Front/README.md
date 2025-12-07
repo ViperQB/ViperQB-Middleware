@@ -25,7 +25,7 @@ ViperQB provides 10 modular security plugins for enterprises requiring blockchai
 
 ### 🎨 Frontend Architecture
 
-```
+\`\`\`
 app/
 ├── page.tsx                 # Marketing homepage
 ├── login/page.tsx           # Authentication
@@ -62,7 +62,7 @@ lib/
 ├── api-client.ts            # Backend API integration
 ├── constants.ts             # Endpoints & module names
 └── utils.ts                 # Utility functions
-```
+\`\`\`
 
 ## Getting Started
 
@@ -74,7 +74,7 @@ lib/
 
 ### Installation
 
-```bash
+\`\`\`bash
 # Clone the repository
 git clone https://github.com/viperqb/middleware.git
 cd middleware
@@ -90,7 +90,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 
 # Start development server
 npm run dev
-```
+\`\`\`
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
@@ -125,17 +125,17 @@ The frontend is designed to work with the ViperQB backend API. Key integration p
 
 ### Authentication Endpoints
 
-```typescript
+\`\`\`typescript
 POST   /api/v1/auth/login          # User login
 GET    /api/v1/auth/me             # Get current user
 POST   /api/v1/auth/refresh        # Refresh token
-```
+\`\`\`
 
 ### Module Endpoints
 
 All modules follow RESTful patterns:
 
-```typescript
+\`\`\`typescript
 // File Transfer
 POST   /api/v1/sft/upload          # Upload encrypted file
 GET    /api/v1/sft/download/{id}   # Download file
@@ -152,13 +152,13 @@ GET    /api/v1/forensics/query     # Search logs
 POST   /api/v1/forensics/export    # Export to CSV
 
 // And more...
-```
+\`\`\`
 
 See `lib/constants.ts` for the complete endpoint mapping.
 
 ## API Client Usage
 
-```typescript
+\`\`\`typescript
 import { apiClient } from "@/lib/api-client"
 
 // GET request
@@ -173,7 +173,7 @@ const { success, data } = await apiClient.post("/kyc/sessions", {
 if (!success) {
   console.error("API Error:", error)
 }
-```
+\`\`\`
 
 ## Development
 
@@ -201,7 +201,7 @@ if (!success) {
 
 ## Project Structure
 
-```
+\`\`\`
 ├── app/                    # Next.js app router pages
 ├── components/             # React components
 ├── lib/                    # Utilities, constants, API client
@@ -209,26 +209,26 @@ if (!success) {
 ├── app/globals.css         # Global styles with design tokens
 ├── tailwind.config.js      # Tailwind configuration
 └── tsconfig.json           # TypeScript configuration
-```
+\`\`\`
 
 ## Production Deployment
 
 ### Vercel Deployment
 
-```bash
+\`\`\`bash
 # Push to GitHub
 git push origin main
 
 # Deploy automatically via Vercel
-```
+\`\`\`
 
 ### Environment Variables
 
 Set these in your Vercel project settings:
 
-```
+\`\`\`
 NEXT_PUBLIC_API_BASE_URL=https://api.viperqb.com
-```
+\`\`\`
 
 ## Performance Optimization
 
